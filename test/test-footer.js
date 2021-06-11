@@ -67,15 +67,37 @@ describe("Footer", function () {
                     }
                 }
             }
-            var message = e(ink.Text, {}, "This is a custom footer");
+            var message = e(ink.Text, {backgroundColor: "cyan"}, "This is a custom footer");
             var element = e(ink.Box, {width:25}, 
                 e(Footer, {keyBindings: keybindings, message: message})
             );
             var {lastFrame, unmount} = render(element);
             await delay(100);
-            var expected = "\x1B[46m \x1B[49m\x1B[46m\x1B[30mThis is a custom footer\x1B[39m\x1B[49m\x1B[46m \x1B[49m";
+            var expected = "\x1B[46m \x1B[49m\x1B[46mThis is a custom footer\x1B[49m\x1B[46m \x1B[49m";
             assert.strictEqual(lastFrame(), expected);
             unmount();
         });
+        it("should be able to do a htop bar", async function(){
+            var accentColor = "cyan";
+            const footerMessage = e(ink.Box, {justifyContent: "flex-start", width:"100%"}, 
+                e(ink.Text, {}, 
+                    e(ink.Text, {bold:true}, "F1"),
+                    e(ink.Text, {backgroundColor: accentColor}, "Command "),
+                    e(ink.Text, {bold:true}, "F2"),
+                    e(ink.Text, {backgroundColor: accentColor}, "Command ")
+                )
+            );
+
+            var element = e(ink.Box, {width:20}, 
+                e(Footer, {message:footerMessage})
+            );
+            var {lastFrame, unmount} = render(element);
+            await delay(100);
+            var expected = "\x1B[1mF1\x1B[22m\x1B[46mCommand \x1B[49m\x1B[1mF2\x1B[22m\x1B[46mCommand \x1B[49m";
+            assert.strictEqual(lastFrame(), expected);
+            unmount();
+
+
+        })
     });
 });

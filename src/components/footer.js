@@ -82,19 +82,23 @@ const Footer = ({
     ...props
 }) =>{
 
+    const [useComponent, setUseComponent] = React.useState((typeof message === "string") ? false : true);
+
     const getKeys = React.useCallback(()=>{
         return e(keyBar, {suggestionsEnabled: suggestionsEnabled, keyBindings:keyBindings, backgroundColor:backgroundColor, color: color});
     }, [keyBindings])
 
-    var keys;
-    if(message && typeof message !== "string"){
-        keys = undefined;
-    }
-    else{
-        if(keyBindings){
-            keys = getKeys();
+    React.useEffect(()=>{
+        if(message && typeof message !== "string"){
+            setUseComponent(true);
         }
-    }
+        else{
+            setUseComponent(false);
+        }
+    }, [message]);
+
+    var keys = undefined;
+    if(!useComponent && keyBindings) keys = getKeys();
 
     /**
      * @type {import("../types").ColorBoxProps}
@@ -105,11 +109,12 @@ const Footer = ({
         backgroundColor: backgroundColor
     };
 
+    var messageComponent = useComponent ? message : e(ink.Text, {backgroundColor: backgroundColor, color: color}, message);
 
     return e(ColorBox, colorBoxProps, 
         e(ink.Box, {justifyContent: "space-around", width: "100%"}, 
             keys,
-            e(ink.Text, {backgroundColor: backgroundColor, color: color}, message),
+            messageComponent,
         )
     );
 }
