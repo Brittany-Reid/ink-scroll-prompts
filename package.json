@@ -1,0 +1,36 @@
+{
+  "name": "ink-scroll-prompts",
+  "version": "0.0.0",
+  "description": "Prompts that scroll. Using ink.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test",
+    "coverage": "nyc npm run test"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Brittany Reid"
+  },
+  "license": "Unlicense",
+  "dependencies": {
+    "@gnd/ink": "^3.1.2",
+    "slice-ansi": "^3.0.0",
+    "strip-ansi": "^5.2.0",
+    "wrap-ansi": "^6.2.0"
+  },
+  "devDependencies": {
+    "chalk": "^4.1.1",
+    "delay": "^5.0.0",
+    "eslint": "^7.25.0",
+    "mocha": "^8.4.0",
+    "nyc": "^15.1.0"
+  },
+  "nyc": {
+    "exclude": [
+      "src/patch",
+      "test",
+      "src/utils.js",
+      "src/hooks"
+    ]
+  }
+}
