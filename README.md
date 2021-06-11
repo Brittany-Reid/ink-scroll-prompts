@@ -1,4 +1,3 @@
-# Ink Scroll Prompts
 <table>
 <tr>
 <td>
@@ -7,6 +6,8 @@
 </tr>
 </table>
 
+# Ink Scroll Prompts
+
 Prompts that scroll. Using ink.
 
 ## Install
@@ -14,8 +15,14 @@ The package is currently not published on NPM.
 
 You can install it from GitHub using:
 
+```sh
+npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git"
 ```
-npm install --save "git://github.com/username/package.git#commit"
+
+I recommend using a specific commit using:
+
+```
+npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#commit"
 ```
 
 ## Usage

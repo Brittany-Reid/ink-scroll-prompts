@@ -9,7 +9,12 @@
   },
   "keywords": [],
   "author": {
-    "name": "Brittany Reid"
+    "name": "Brittany Reid",
+    "url": "https://github.com/brittany-reid"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Brittany-Reid/ink-scroll-prompts.git"
   },
   "license": "Unlicense",
   "dependencies": {
