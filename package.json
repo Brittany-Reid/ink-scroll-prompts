@@ -18,17 +18,22 @@
   },
   "license": "Unlicense",
   "dependencies": {
-    "@gnd/ink": "^3.1.2",
     "slice-ansi": "^3.0.0",
     "strip-ansi": "^5.2.0",
     "wrap-ansi": "^6.2.0"
   },
+  "peerDependencies": {
+    "@gnd/ink": "^3.1.2",
+    "react": "^16.9.0"
+  },
   "devDependencies": {
     "chalk": "^4.1.1",
     "delay": "^5.0.0",
-    "eslint": "^7.25.0",
+    "eslint": "^7.28.0",
     "mocha": "^8.4.0",
-    "nyc": "^15.1.0"
+    "nyc": "^15.1.0",
+    "react": "^16.9.0",
+    "@gnd/ink": "^3.1.2"
   },
   "nyc": {
     "exclude": [
