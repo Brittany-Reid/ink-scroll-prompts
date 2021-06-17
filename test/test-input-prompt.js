@@ -176,22 +176,25 @@ describe("InputPrompt", function () {
         });
         it("should cancel on esc", async function () {
             const expected = "Hello world";
+            var lastFrame;
 
             var result = await new Promise(async (resolve) => {
                 var onCancel = async (input) =>{
-                    await delay(100);
                     resolve(input);
                 }
                 var element = e(HandledInputPrompt, {initialInput: expected, onCancel: onCancel});
-                const {stdin, unmount} = render(element);
+                var app = render(element);
+                lastFrame = app.lastFrame;
                 await delay(100);
-                stdin.write(ESC);
-                await delay(100);
-                unmount();
+                app.stdin.write(ESC);
+                //await delay(100);
+                app.unmount();
                 resolve()
             });
 
             assert.strictEqual(result, expected);
+            //ensure timing, this should be in canceled dimmed state
+            assert.strictEqual(lastFrame(), "\x1B[2m> \x1B[22m\x1B[2mHello world\x1B[22m\n")
         });
         it("should be able to use last command", async function () {
             var app;

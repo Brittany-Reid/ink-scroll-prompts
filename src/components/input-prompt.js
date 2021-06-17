@@ -184,6 +184,7 @@ class InputPrompt extends React.Component{
         this.handleSelect = this.handleSelect.bind(this);
         this.handleComplete = this.handleComplete.bind(this);
         this.handleToggleComplete = this.handleToggleComplete.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot){
@@ -319,10 +320,6 @@ class InputPrompt extends React.Component{
 
     cancel(){
         this.inputBoxRef.current.cancel();
-        this.setState({
-            canceled: true,
-            suggesting: false,
-        });
     }
 
     /**
@@ -367,6 +364,14 @@ class InputPrompt extends React.Component{
         this.setState({
             suggesting: false,
         })
+    }
+
+    handleCancel(input){
+        this.setState({
+            canceled: true,
+            suggesting: false,
+        });
+        if(typeof this.props.onCancel === "function") this.props.onCancel(input);
     }
 
     handleComplete(match, lastWord){
@@ -452,7 +457,7 @@ class InputPrompt extends React.Component{
             onUpdate: this.handleUpdate,
             transform: transform,
             width:"100%",
-            onCancel: onCancel,
+            onCancel: this.handleCancel,
             onSubmit: onSubmit,
         }
 
