@@ -1,20 +1,65 @@
 const ink = require("@gnd/ink");
 const React = require("react");
 const wrapAnsi = require("wrap-ansi");
+const {Store} = require('data-store');
 const {_extends, fixedCharAt, fixedSubstring, fixedCharLength, getLastWord } = require("../utils");
 const InputText = require("./input-text");
+const useInput = require("../patch/use-input");
 const e = React.createElement;
+
+const unique = (arr) => arr.filter((v, i) => arr.lastIndexOf(v) === i);
+const compact = (arr) => unique(arr).filter(Boolean);
+
+/**
+ * InputBox onSubmit function
+ * @callback OnSubmitFunction
+ * @param {string} input The current input string on submit.
+ * @return 
+ */
+
+/**
+ * InputBox onCancel function
+ * @callback OnCancelFunction
+ * @param {string} input The current input string on cancel.
+ * @return 
+ */
+
+/**
+ * InputBox onUpdate function.
+ * @callback OnUpdateFunction
+ * @param {string} input Current input string.
+ * @param {number} x Current x position.
+ * @param {number} y Current y position.
+ * @param {boolean} typed Has the user typed?
+ */
+
+/**
+ * InputBox Props
+ * @typedef {Object} InputBoxTypes
+ * @property {string} [initialInput] Start the input with an initial string. Default empty.
+ * @property {string} [historyFile] Path to history JSON file. Creates if file doesn't exist.
+ * @property {boolean} [multiline]  Allow multiline controls. Enables down to add newlines.
+ * @property {boolean} [disableNewlines] If multiline is also false, remove newlines from input. Doesn't control wrap.
+ * @property {React.ReactElement | string | null} [promptElement] To use a prompt, supply a text element here.
+ * @property {number} [promptOffset] The offset caused by the prompt text.
+ * @property {OnUpdateFunction} [onUpdate] Function to call on component update. Reports cursor position. You can use this to message parent about updates.
+ * @property {'wrap' | 'truncate' | 'truncate-end' | 'truncate-start' | 'truncate-middle'} [wrap] Ink wrap type.
+ * @property {OnSubmitFunction} [onSubmit] Function to be called on submit.
+ * @property {OnCancelFunction} [onCancel] Function to be called on cancel
+ * 
+ * @typedef {ink.BoxProps & import("./input-text").InputTextProps & InputBoxTypes} InputBoxProps
+ */
 
 /**
  * An input field that has more advanced functionality.
  * This class has functions that a handler parent can call on ref.
  * It needs to be an Ink.Box to measure width and handle cursor down.
  * 
- * @extends React.Component<import("../types").InputBoxProps>
+ * @extends React.Component<InputBoxProps>
  */
 class InputBox extends React.Component{
     /**
-     * @param {import("../types").InputBoxProps} props 
+     * @param {InputBoxProps} props 
      */
     constructor(props) {
         super(props);
@@ -28,9 +73,14 @@ class InputBox extends React.Component{
             typed: false, //if use has typed
             cursorWidth: 1, //string.length of current cursor
         }
+
+        this.initHistory();
     }
 
     componentDidUpdate(prevProps, prevState, snapshot){
+        if(prevProps.historyFile !== this.props.historyFile){
+            this.initHistory();
+        }
         this.onUpdate();
     }
 
@@ -45,6 +95,19 @@ class InputBox extends React.Component{
         }
     }
 
+    initHistory(){
+        if(typeof this.props.historyFile === "string" && this.props.historyFile.length > 0){
+            this.store = new Store({path: this.props.historyFile});
+            this.history = this.store.get("history") || { past: [] };
+            this.historyIndex = -1;
+        }
+        else{
+            this.store = undefined;
+            this.history = undefined;
+            this.historyIndex = -1;
+        }
+    }
+
     /**
      * Format any input for us.
      */
@@ -56,6 +119,29 @@ class InputBox extends React.Component{
             input = input.replace("\n", "")
         }
         return input;
+    }
+
+    submit(){
+        const {onSubmit} = this.props;
+        this.save();
+        if(typeof onSubmit === "function") onSubmit(this.state.input);
+    }
+
+    save(){
+        if(this.store && this.state.input){
+            var past = this.history.past || [];
+            past.push(this.state.input);
+            this.history = {
+                past: compact(past),
+            };
+            this.store.set("history", this.history);
+            this.historyIndex = -1;
+        }
+    }
+
+    cancel(){
+        const {onCancel} = this.props;
+        if(typeof onCancel=== "function") onCancel(this.state.input);
     }
 
     getLines(){
@@ -111,6 +197,39 @@ class InputBox extends React.Component{
         }
 
         return {x:x, y:y};
+    }
+
+    historyUp(){
+        if(!this.store) return;
+        var past = this.history.past;
+        if (!past || past.length < 1) return;
+
+        this.historyIndex += 1;
+        if(this.historyIndex >= past.length) {
+            this.historyIndex = past.length-1;
+            return;
+        }
+
+        var index = (past.length-1)-this.historyIndex;
+        var previous = past[index];
+        if(!previous) return;
+        this.setInput(previous);
+    }
+
+    historyDown(){
+        if(!this.store) return;
+        var past = this.history.past;
+        if (!past || past.length < 1) return;
+        
+        this.historyIndex -= 1;
+        if(this.historyIndex < -1) this.historyIndex = -1;
+        if(this.historyIndex === -1) return this.setInput("");
+
+        var index = (past.length-1)-this.historyIndex;
+        var previous = past[index];
+        if(!previous) return;
+        this.historyIndex--;
+        this.setInput(previous);
     }
 
     /**
@@ -324,7 +443,7 @@ class InputBox extends React.Component{
             input:newInput,
             cursor:newInput.length,
             cursorWidth:1,
-            typed: !!resetTyped,
+            typed: !resetTyped,
         })
     }
 
@@ -379,80 +498,98 @@ InputBox.defaultProps = {
     onUpdate: undefined,
     multiline:false,
     disableNewlines: false,
+    historyFile: undefined,
 }
 
+
+
 /**
- * @type {React.FC<import("../types").HandledInputBoxProps>}
+ * HandledInputBox Props
+ * @typedef {Object} HandledInputBoxTypes
+ * @property {boolean} [isFocused] For focus management, if the element is handling input.
+ * 
+ * @typedef {InputBoxProps & HandledInputBoxTypes} HandledInputBoxProps
+ */
+
+/**
+ * @type {React.FC<HandledInputBoxProps>}
  */
 const HandledInputBox = React.forwardRef(({
-    onSubmit,
     isFocused = true,
     ...props
 }, ref) => {
     var innerRef = ref ? ref : React.createRef();
 
-    ink.useInput(
+    const app = ink.useApp();
+
+    useInput(
         (input, key) => {
+            // @ts-ignore
+            const currentBox = innerRef.current;
+            if(key.shift && key.upArrow){
+                currentBox.historyUp();
+                return;
+            }
+            if(key.shift && key.downArrow){
+                currentBox.historyDown();
+                return;
+            }
             if(key.ctrl && input === "e"){
-                // @ts-ignore
-                innerRef.current.moveCursorEndOfLine(); 
+                currentBox.moveCursorEndOfLine(); 
                 return;
             }
             if(key.ctrl && input === "a"){
-                // @ts-ignore
-                innerRef.current.moveCursorStartOfLine();
+                currentBox.moveCursorStartOfLine();
                 return;
             }
             if(key.upArrow){
-                // @ts-ignore
-                innerRef.current.moveCursorUp();
+                currentBox.moveCursorUp();
                 return;
             }
             if(key.downArrow){
-                // @ts-ignore
-                innerRef.current.moveCursorDown();
+                currentBox.moveCursorDown();
                 return;
             }
             if(key.return){
-                // @ts-ignore
-                if(typeof onSubmit === "function") onSubmit(innerRef.current.state.input);
+                currentBox.submit();
                 return;
             }
             if(key.delete || key.backspace){
-                // @ts-ignore
-                innerRef.current.deleteCh(1);
+                currentBox.deleteCh(1);
                 return;
             }
             if(key.ctrl && input === "w"){
-                // @ts-ignore
-                innerRef.current.deleteWord();
+                currentBox.deleteWord();
                 return;
             }
             if(key.ctrl && input === "u"){
-                // @ts-ignore
-                innerRef.current.deleteLine();
+                currentBox.deleteLine();
                 return;
             }
             if(key.leftArrow){
-                // @ts-ignore
-                innerRef.current.moveCursor(-1);
+                currentBox.moveCursor(-1);
                 return;
             }
             if(key.rightArrow){
-                // @ts-ignore
-                innerRef.current.moveCursor(1);
+                currentBox.moveCursor(1);
                 return;
             }
-            if(key.escape) return;
-            // @ts-ignore
-            innerRef.current.append(input);
+            if(key.escape || (key.ctrl && input === "c")){
+                currentBox.cancel();
+                app.exit();
+                return;
+            }
+            currentBox.append(input);
         }, {isActive: isFocused}
     );
 
     return e(InputBox, _extends({ref:innerRef}, props));
 });
 
-e(InputBox, {wrap: "wrap"})
+
+// var app;
+// var el = e(HandledInputBox, {historyFile: "history.json", onSubmit: (input) => {app.unmount()}});
+// app = ink.render(el);
 
 exports.InputBox = InputBox;
 exports.HandledInputBox = HandledInputBox;

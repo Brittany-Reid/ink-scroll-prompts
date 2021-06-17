@@ -21,6 +21,8 @@ class Stdout extends EventEmitter {
 	lastFrame = () => {
 		return this._lastFrame;
 	};
+
+	moveCursor = () => {};
 }
 
 class Stderr extends EventEmitter {

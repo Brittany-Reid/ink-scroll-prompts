@@ -7,8 +7,36 @@ const e = React.createElement;
 const delay = require("delay");
 const {render} = require("../src/patch/ink-testing-library-patch");
 const chalk = require("chalk");
+const fs = require("fs");
+
+const ENTER = '\r';
+const ARROW_UP = '\u001B[A';
+const ARROW_DOWN = '\u001B[B';
+const ARROW_LEFT = '\u001B[D';
+const ARROW_RIGHT = '\u001B[C';
+const DELETE = '\u007F';
+const CTRLU = "\x15";
+const CTRLW = "\x17";
+const CTRLE = "\x05";
+const CTRLA = "\x01";
+const ESC = "\u001B";
+const SHIFTUP = "\u001B[1;2A";
+const SHIFTDOWN = "\u001B[1;2B";
 
 describe("InputPrompt", function () {
+    const historyFile = "testHistory.json";
+    const history = {
+        "history": {
+            "past": [
+                "a1",
+            ]
+        }
+    }
+
+    before(() =>{
+        fs.writeFileSync(historyFile, JSON.stringify(history));
+    })
+
     describe("unit tests", function () {
         it("should work with default options", function () {
             var element = e(InputPrompt, {});
@@ -126,7 +154,146 @@ describe("InputPrompt", function () {
             assert.strictEqual(lastFrame(), expected);
 
             unmount();
-        
         });
+        it("should submit on enter", async function () {
+            const expected = "Hello world";
+
+            var result = await new Promise(async (resolve) => {
+                var onSubmit = async (input) =>{
+                    await delay(100);
+                    resolve(input);
+                }
+                var element = e(HandledInputPrompt, {initialInput: expected, onSubmit:onSubmit});
+                const {stdin, unmount} = render(element);
+                await delay(100);
+                stdin.write(ENTER);
+                await delay(100);
+                unmount();
+                resolve()
+            });
+
+            assert.strictEqual(result, expected);
+        });
+        it("should cancel on esc", async function () {
+            const expected = "Hello world";
+
+            var result = await new Promise(async (resolve) => {
+                var onCancel = async (input) =>{
+                    await delay(100);
+                    resolve(input);
+                }
+                var element = e(HandledInputPrompt, {initialInput: expected, onCancel: onCancel});
+                const {stdin, unmount} = render(element);
+                await delay(100);
+                stdin.write(ESC);
+                await delay(100);
+                unmount();
+                resolve()
+            });
+
+            assert.strictEqual(result, expected);
+        });
+        it("should be able to use last command", async function () {
+            var app;
+            var element = e(HandledInputPrompt, {historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "> a1\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        it("should be able to navigate history", async function () {
+            var app;
+            var element = e(HandledInputPrompt, {historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+            app.stdin.write(SHIFTDOWN);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "> \x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        it("should not show completes on history", async function () {
+            var app;
+            var element = e(HandledInputPrompt, {historyFile: historyFile, completions: ["a1complete"]});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "> a1\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        it("should delete characters", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "ab"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(DELETE)
+            await delay(100);
+            const expected = '> a\x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+        });
+        it("should delete word", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "Hello world"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(CTRLW)
+            await delay(100);
+            const expected = '> Hello \x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+        });
+        it("should delete line", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "Hello world 2"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(CTRLU)
+            await delay(100);
+            const expected = '> \x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+        });
+        it("should move cursor forward", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "ab"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(ARROW_LEFT)
+            await delay(100);
+            stdin.write(ARROW_LEFT)
+            await delay(100);
+            stdin.write(ARROW_RIGHT)
+            await delay(100);
+            const expected = '> a\x1B[7mb\x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+        });
+        it("should move cursor up and down", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "ab\ncd\ne"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(ARROW_UP)
+            await delay(100);
+            stdin.write(ARROW_DOWN)
+            await delay(100);
+            const expected = '> ab\ncd\ne\x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+        });
+        it("should move to start of line", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "ab\ncd"});
+            const {lastFrame, stdin} = render(element);
+            await delay(100);
+            stdin.write(CTRLA)
+            await delay(100);
+            const expected = '> ab\n\x1B[7mc\x1B[27md';
+            assert.strictEqual(lastFrame(), expected);
+        });
+    });
+
+    after(()=>{
+        fs.unlinkSync(historyFile);
     });
 });

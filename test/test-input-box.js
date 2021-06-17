@@ -8,6 +8,7 @@ const { InputBox, HandledInputBox } = require("../src/components/input-box");
 const delay = require("delay");
 const Prompt = require("../src/components/prompt");
 const chalk = require("chalk");
+const fs = require("fs");
 
 const ENTER = '\r';
 const ARROW_UP = '\u001B[A';
@@ -19,8 +20,24 @@ const CTRLU = "\x15";
 const CTRLW = "\x17";
 const CTRLE = "\x05";
 const CTRLA = "\x01";
+const ESC = "\u001B";
+const SHIFTUP = "\u001B[1;2A";
+const SHIFTDOWN = "\u001B[1;2B";
 
 describe("InputBox", function () {
+    const historyFile = "testHistory.json";
+    const history = {
+        "history": {
+            "past": [
+                "a1",
+            ]
+        }
+    }
+
+    before(() =>{
+        fs.writeFileSync(historyFile, JSON.stringify(history));
+    })
+
     describe("unit tests", function () {
         it("should work with default options", function () {
             var element = e(InputBox, {});
@@ -356,6 +373,25 @@ describe("InputBox", function () {
             stdin.write(ENTER);
             await delay(100);
         });
+        it("should cancel on esc", async function () {
+            const expected = "Hello world";
+
+            var result = await new Promise(async (resolve) => {
+                var onCancel = async (input) =>{
+                    await delay(100);
+                    resolve(input);
+                }
+                var element = e(HandledInputBox, {initialInput: expected, onCancel: onCancel});
+                const {stdin, unmount} = render(element);
+                await delay(100);
+                stdin.write(ESC);
+                await delay(100);
+                unmount();
+                resolve()
+            });
+
+            assert.strictEqual(result, expected);
+        });
         it("should report cursor x y on change", async function () {
             const expected = "Hello world";
             var onUpdate = async (input, x , y) =>{
@@ -416,5 +452,76 @@ describe("InputBox", function () {
             const expected = '> \x1B[7m \x1B[27m';
             assert.strictEqual(lastFrame(), expected);
         });
+    });
+    describe("history", function(){
+        it("should add to history", async function () {
+            var app;
+            var element = e(HandledInputBox, {historyFile: historyFile, onSubmit: ((input) => {app.unmount()})});
+            app = render(element);
+            await delay(100);
+            app.stdin.write("a0");
+            await delay(100);
+            app.stdin.write(ENTER);
+            await delay(100);
+
+            element = e(HandledInputBox, {historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "a0\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        it("should stop when reach limit of history", async function () {
+            var app;
+            var element = e(HandledInputBox, {historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "a1\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        //maybe replace final shift down with retaining original input?
+        it("should erase on last shift down", async function () {
+            var app;
+            var element = e(HandledInputBox, {initialInput: "a", historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTDOWN);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+        it("should be able to navigate history", async function () {
+            var app;
+            var element = e(HandledInputBox, {historyFile: historyFile});
+            app = render(element);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+            app.stdin.write(SHIFTUP);
+            await delay(100);
+            app.stdin.write(SHIFTDOWN);
+            await delay(100);
+
+            assert.strictEqual(app.lastFrame(), "a0\x1B[7m \x1B[27m");
+
+            app.unmount();
+        });
+    });
+
+    after(()=>{
+        fs.unlinkSync(historyFile);
     });
 });

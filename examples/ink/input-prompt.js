@@ -35,7 +35,7 @@ const myPrompt = () => {
         setHeight(height);
     });
 
-    return e(HandledInputPrompt, {initialInput: "c", footer: true, width: width, maxHeight: height-2, completions: completes, suggestions: suggestions, footerMessage: "ink-scroll-prompts v0"});
+    return e(HandledInputPrompt, {initialInput: "c", footer: true, width: width, maxHeight: height-2, completions: completes, suggestions: suggestions, footerMessage: "ink-scroll-prompts v0", historyFile: "history.json"});
 }
 
 

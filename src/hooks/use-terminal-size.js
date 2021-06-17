@@ -2,14 +2,14 @@ const ink = require("@gnd/ink");
 const React = require("react");
 
 /**
- * @callback Handler
+ * @callback ResizeHandler
  * @param {number} columns
  * @param {number} rows
  */
 
 /**
  * Hook for terminal resize events.
- * @param {Handler} resizeHandler Function to call on terminal resize.
+ * @param {ResizeHandler} resizeHandler Function to call on terminal resize.
  */
 const useTerminalSize = (resizeHandler) => {
     const {stdout} = ink.useStdout();

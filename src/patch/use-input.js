@@ -69,6 +69,17 @@ const useInput = (inputHandler, options = {}) => {
             if (input.startsWith('\u001B')) {
                 input = input.slice(1);
                 key.meta = true;
+
+                if(input === "[1;2A"){
+                    key.meta = false;
+                    key.shift = true;
+                    key.upArrow = true;
+                }
+                if(input === "[1;2B"){
+                    key.meta = false;
+                    key.shift = true;
+                    key.downArrow = true;
+                }
             }
 
             const isLatinUppercase = input >= 'A' && input <= 'Z';

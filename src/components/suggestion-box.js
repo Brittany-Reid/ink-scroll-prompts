@@ -5,6 +5,8 @@ const ColorBox = require("./color-box");
 const { ScrollMenu } = require("./scroll-menu");
 const e = React.createElement;
 
+
+
 const SuggestionComponent = ({
     label = "",
     isSelected = false,
@@ -32,6 +34,17 @@ const SuggestionComponent = ({
     );
 }
 
+/**
+ * SuggestionBox filter function.
+ * @callback SuggestFunction
+ * @param {string} query
+ * @param {Array} suggestions
+ * @return {Array}
+ */
+
+/**
+ * @type {SuggestFunction}
+ */
 const defaultSuggest = (query, suggestions) => {
     suggestions = suggestions.filter((item) =>{
         var label = item.label;
@@ -42,9 +55,23 @@ const defaultSuggest = (query, suggestions) => {
 }
 
 /**
+ * SuggestionBox Props.
+ * @typedef {Object} SuggestionBoxTypes
+ * @property {string} [query] Query to filter suggestions by.
+ * @property {Array} [suggestions] List of suggestion items, for example `{label:"a"}`.
+ * @property {SuggestFunction} [suggest] Function to filter suggestions based on query string.
+ * @property {import("../types").Color} [accentColor] Accent colour, for selected item.
+ * @property {import("./scroll-menu").OnSelectFunction} [onSelect] Function to call on select an item.
+ * @property {number} [maxHeight] Max height.
+ * @property {boolean} [isFocused] If suggestionBox is focused, otherwise it doesn't use input.
+ * 
+ * @typedef {import("./color-box").ColorBoxProps & SuggestionBoxTypes} SuggestionBoxProps
+ */
+
+/**
  * Suggestion box that filters based on query and filter function.
  * Used to implement a box of suggestions that filteres as you type.
- * @type {React.FC<import("../types").SuggestionBoxProps>}
+ * @type {React.FC<SuggestionBoxProps>}
  */
 const SuggestionBox = React.forwardRef(({
     query = "",

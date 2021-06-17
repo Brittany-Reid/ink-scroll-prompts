@@ -5,8 +5,18 @@ const { _extends, fixedCharAt, getLastWord } = require("../utils");
 const e = React.createElement;
 
 /**
+ * AutoComplete onComplete function.
+ * @callback CompleteFunction Complete Function
+ * @param {string} input Current input
+ * @param {string} lastWord The last word in the input.
+ * @param {number} cursor Current cursor index.
+ * @param {Array<String>} completions Array of supplied completions.
+ * @return {string} Returns completion to display.
+ */
+
+/**
  * Default Complete Function
- * @type {import("../types").completeFunction}
+ * @type {CompleteFunction}
  */
 const defaultComplete = (input, lastWord, cursor, completions) => {
     var match;
@@ -21,8 +31,22 @@ const defaultComplete = (input, lastWord, cursor, completions) => {
 }
 
 /**
+ * AutoComplete Props
+ * @typedef {Object} AutoCompleteTypes
+ * @property {number} [xOffset] Offset to display the text at.
+ * @property {string} [input] Current input string to generate completes from.
+ * @property {number} [cursor] Current cursor position as index of input.
+ * @property {Array} [completions] Array of inline completions. The default algorithm will match input to these.
+ * @property {CompleteFunction} [complete] Custom complete function.
+ * @property {Function} [toggleComplete] Toggle complete.
+ * @property {Function} [onComplete] Behaviour on complete.
+ * @property {boolean} [isFocused] If autocomplete is accepting input.
+ * @typedef {ink.BoxProps & AutoCompleteTypes} AutoCompleteProps
+ */
+
+/**
  * AutoComplete component, displays inline completions.
- * @type {React.FC<import("../types").AutoCompleteProps>}
+ * @type {React.FC<AutoCompleteProps>}
  */
 const AutoComplete = ({
     input,

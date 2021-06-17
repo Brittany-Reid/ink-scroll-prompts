@@ -5,16 +5,39 @@ const Scrollbar = require("./scrollbar");
 const e = React.createElement;
 
 /**
+ * ScrollBox onSizeChange function
+ * @callback OnSizeChangeFunction
+ * @param {number} height
+ * @param {number} scrollMaxX
+ * @param {number} scrollMaxY
+ */
+
+/**
+ * @typedef {Object} ScrollBoxTypes
+ * @property {boolean} [arrows] To display arrows on scrollbars.
+ * @property {"auto" | "hidden" | "scroll"} [overflow] If scrollbars should appear auto, not at all, or always.
+ * @property {"auto" | "hidden" | "scroll"} [overflowX] Set scrolling mode specifically for the x-axis.
+ * @property {"auto" | "hidden" | "scroll"} [overflowY] Set scrolling mode specifically for the y-axis.
+ * @property {import("../types").Color} [scrollbarColor] Colour of the scrollbars.
+ * @property {number} [maxHeight] MaxHeight of the scrollbox as a number.
+ * @property {number} [maxWidth] MaxWidth of the scrollbox as a number. Currently not implemented.
+ * @property {OnSizeChangeFunction} [onSizeChange] Function called on size changes.
+ * @property {*} [containerRef] Ref to access the scroll container, which holds the content but not scrollbars.
+ * 
+ * @typedef {Omit<ink.BoxProps, "overflow"> & ScrollBoxTypes} ScrollBoxProps
+ */
+
+/**
  * Scrollable box component. EXPERIMENTAL.
  * This code is a mess and there are a lot of work arounds. It works for my uses.
  * To reduce flickering, much of the logic is calculated in a single render.
  * I had issues with the suggestion box getting out of sync when I had multiple renders :(
  * Recommend turning off xaxis scrolling if not needed.
- * @extends React.PureComponent<import("../types").ScrollBoxProps>
+ * @extends React.PureComponent<ScrollBoxProps>
  */
 class ScrollBox extends React.PureComponent{
     /**
-     * @param {import("../types").ScrollBoxProps} props 
+     * @param {ScrollBoxProps} props 
      */
     constructor(props){
         super(props);
@@ -321,7 +344,7 @@ class ScrollBox extends React.PureComponent{
     }
 }
 /**
- * @type {import("../types").ScrollBoxProps}
+ * @type {ScrollBoxProps}
  */
 ScrollBox.defaultProps = {
     overflow:"auto",
@@ -334,8 +357,16 @@ ScrollBox.defaultProps = {
 }
 
 /**
+ * Handled ScrollBox Props
+ * @typedef {Object} HandledScrollBoxTypes
+ * @property {boolean} [isFocused] If ScrollBox is accepting input.
+ * 
+ * @typedef {ScrollBoxProps & HandledScrollBoxTypes} HandledScrollBoxProps
+ */
+
+/**
  * A ScrollBox with input handled (arrow keys to scroll).
- * @type {React.FC<import("../types").HandledScrollBoxProps>}
+ * @type {HandledScrollBoxProps>}
  */
 const HandledScrollBox = ({
     isFocused = true,

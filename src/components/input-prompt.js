@@ -11,7 +11,48 @@ const useInput = require("../patch/use-input");
 
 const e = React.createElement;
 
+/**
+ * InputPrompt onSubmit function
+ * @callback OnSubmitFunction
+ * @param {string} input The current input string on submit.
+ * @return 
+ */
+
+/**
+ * InputPrompt onCancel function
+ * @callback OnCancelFunction
+ * @param {string} input The current input string on cancel.
+ * @return 
+ */
+
+/**
+ * @typedef {Object} InputPromptTypes
+ * @property {boolean} [footer] To display footer or not. Default `false`.
+ * @property {string | React.ReactElement<ink.Text>} [footerMessage] Message string or custom text element for footer.
+ * @property {string} [accentColor] Accent color as a chalk color, default `cyan`.
+ * @property {OnSubmitFunction} [onSubmit] Function to call on submit.
+ * @property {OnCancelFunction} [onCancel] Function to call on submit.
+ * @property {Array} [suggestions] Suggestions that appear in a box.
+ * @property {Object} [keyBindings] Keybindings (used by footer for display).
+ * 
+ * @typedef {Pick<import("./auto-complete").AutoCompleteTypes, "completions" | "complete"> & Pick<import("./suggestion-box").SuggestionBoxTypes, "suggestions" | "suggest">  & import("./scrollbox").ScrollBoxProps & import("./input-box").InputBoxProps & import("./prompt").PromptTypes & InputPromptTypes} InputPromptProps
+ */
+
 const defaultKeyBindings = {
+    historyUp: {
+        key:{
+            shift:true,
+            upArrow: true,
+            ctrl:false,
+        }
+    },
+    historyDown: {
+        key:{
+            shift:true,
+            downArrow: true,
+            ctrl:false,
+        }
+    },
     moveCursorEndOfLine: {
         key:{
             ctrl: true,
@@ -108,11 +149,11 @@ const defaultKeyBindings = {
 /**
  * An fully featured prompt input field.
  * This class has functions that a handler parent can call on ref.
- * @extends React.Component<import("../types").InputPromptProps>
+ * @extends React.Component<InputPromptProps>
  */
 class InputPrompt extends React.Component{
     /**
-     * @param {import("../types").InputPromptProps} props 
+     * @param {InputPromptProps} props 
      */
     constructor(props){
         super(props);
@@ -258,9 +299,13 @@ class InputPrompt extends React.Component{
             })
         }
     }
+    historyUp(){this.inputBoxRef.current.historyUp()}
+    historyDown(){this.inputBoxRef.current.historyDown()}
     deleteWord(){this.inputBoxRef.current.deleteWord()}
     deleteLine(){this.inputBoxRef.current.deleteLine()}
-    insert(ch, n){this.inputBoxRef.current.insert(ch, n)}
+    insert(ch, n){
+        this.inputBoxRef.current.insert(ch, n)
+    }
     setInput(ch, resetTyped){this.inputBoxRef.current.setInput(ch, resetTyped)}
 
     toggleSuggest(){
@@ -273,22 +318,27 @@ class InputPrompt extends React.Component{
     }
 
     cancel(){
+        this.inputBoxRef.current.cancel();
         this.setState({
             canceled: true,
             suggesting: false,
         });
     }
 
+    /**
+     * Try to submit. Returns true if successful.
+     * Can fail to submit when dealing with completions and suggestions.
+     */
     submit(){
         const {suggesting, completing} = this.state;
-        if(suggesting) return;
-        if(completing) return;
-        var input = this.inputBoxRef.current.state.input;
+        if(suggesting) return false;
+        if(completing) return false;
+        this.inputBoxRef.current.submit();
         this.setState({
             submitted: true,
             suggesting: false,
         })
-        if(typeof this.props.onSubmit === "function") this.props.onSubmit(input)
+        return true;
     }
 
     handleUpdate(input, x, y, newTyped){
@@ -346,6 +396,8 @@ class InputPrompt extends React.Component{
         } = this.state;
 
         var {
+            onCancel,
+            onSubmit,
             multiline,
             prefix,
             suggest,
@@ -364,6 +416,7 @@ class InputPrompt extends React.Component{
             overflowY,
             transform,
             color,
+            historyFile,
             ...props
         } = this.props;
 
@@ -388,6 +441,7 @@ class InputPrompt extends React.Component{
         const inputBoxProps = canceled ? {dimColor: true} : submitted ? {} : {
             placeholder:placeholder,
             initialInput: initialInput,
+            historyFile: historyFile,
             ref: this.inputBoxRef,
             promptOffset: calculatePromptOffset(prefix, message, seperator),
             promptElement: e(Prompt, promptProps),
@@ -397,7 +451,9 @@ class InputPrompt extends React.Component{
             color: color,
             onUpdate: this.handleUpdate,
             transform: transform,
-            width:"100%"
+            width:"100%",
+            onCancel: onCancel,
+            onSubmit: onSubmit,
         }
 
         const footerProps = {
@@ -408,9 +464,6 @@ class InputPrompt extends React.Component{
             suggestionsEnabled: (suggestions && suggestions.length > 0) ? true : false,
         }
 
-        /**
-         * @type {import("../types").SuggestionBoxProps}
-         */
         const suggestionBoxProps = {
             display: suggesting ? "flex" : "none",
             isFocused: suggesting,
@@ -473,7 +526,7 @@ function calculatePromptOffset(prefix, message, seperator) {
 }
 
 /**
- * @type {import("../types").InputPromptProps}
+ * @type {InputPromptProps}
  */
 InputPrompt.defaultProps = {
     prefix: "",
@@ -487,12 +540,21 @@ InputPrompt.defaultProps = {
 
 InputPrompt.defaultKeyBindings = defaultKeyBindings;
 
+
+/**
+ * @typedef {Object} HandledInputPromptTypes
+ * @property {boolean} [isFocused] If InputPrompt is accepting input.
+ * @property {boolean} [useDefaultKeys] To use the default keys.
+ * @property {Object} [additionalKeys] Supplied additional keys.
+ * 
+ * @typedef {InputPromptProps & HandledInputPromptTypes} HandledInputPromptProps
+ */
+
 /**
  * Input prompt that handles input.
- * @type {React.FC<import("../types").HandledInputPromptProps>}
+ * @type {React.FC<HandledInputPromptProps>}
  */
 const HandledInputPrompt = React.forwardRef(({
-    onSubmit,
     useDefaultKeys = true,
     additionalKeys = undefined,
     isFocused = true,
@@ -532,7 +594,10 @@ const HandledInputPrompt = React.forwardRef(({
         if(!innerRef) return {};
         return {
             submit: () => {
-                innerRef.current.submit();
+                if(innerRef.current.submit()){
+                    exit();
+                    stdout.moveCursor(0, -1);
+                }
             },
             cancel: () => {
                 innerRef.current.cancel();
@@ -571,18 +636,23 @@ const HandledInputPrompt = React.forwardRef(({
             },
             setInput: (ch, resetTyped) => {
                 innerRef.current.setInput(ch, resetTyped);
+            },
+            historyUp: () => {
+                innerRef.current.historyUp();
+            },
+            historyDown: () => {
+                innerRef.current.historyDown();
             }
         }
     }, [innerRef])
 
-    const internalOnSubmit = React.useCallback((input)=>{
-        if(typeof onSubmit === "function") onSubmit(input);
-        exit();
-        stdout.moveCursor(0, -1);
-    }, [onSubmit])
+    // const internalOnSubmit = React.useCallback((input)=>{
+    //     if(typeof onSubmit === "function") onSubmit(input);
+    //     exit();
+    //     stdout.moveCursor(0, -1);
+    // }, [onSubmit])
 
     const InputProps = {
-        onSubmit: internalOnSubmit,
         ref:innerRef,
         keyBindings: keys,
     }

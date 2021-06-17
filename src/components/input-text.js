@@ -5,12 +5,32 @@ const stripAnsi = require("strip-ansi");
 const e = React.createElement;
 
 /**
+ * InputText transform function
+ * @callback TransformFunction
+ * @param {string} text Text to transform.
+ * @param {boolean} isPlaceholder If displayed text is placeholder.
+ */
+
+/**
+ * InputText Props
+ * @typedef {Object} InputTextTypes
+ * @property {string} [text] Text to render. Default empty.
+ * @property {number} [cursor] Position of the cursor as index of text. Default 0.
+ * @property {string} [placeholder] Placeholder string that only shows on empty input. Default `undefined`.
+ * @property {number} [cursorWidth] CursorWidth
+ * @property {boolean} [showCursor] To show or hide the cursor. By default `true`.
+ * @property {TransformFunction} [transform] Function that applies a transformation on text. Used to style text.
+ * 
+ * @typedef {ink.TextProps & InputTextTypes} InputTextProps
+ */
+
+/**
  * Internal Input text object that renders a text element with cursor at some position.
- * @extends React.Component<import("../types").InputTextProps>
+ * @extends React.Component<InputTextProps>
  */
 class InputText extends React.Component{
     /**
-     * @param {import("../types").InputTextProps} props 
+     * @param {InputTextProps} props 
      */
     constructor(props) {
         super(props);

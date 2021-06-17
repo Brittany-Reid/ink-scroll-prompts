@@ -5,9 +5,18 @@ const { ScrollBox } = require("./scrollbox");
 const e = React.createElement;
 
 /**
+ * @typedef {Object} ItemComponentTypes
+ * @property {string} label Label to display, required.
+ * @property {boolean} [isSelected]
+ * @property {import("../types").Color} [accentColor]
+ * 
+ * @typedef {ink.TextProps & ItemComponentTypes} ItemComponentProps
+ */
+
+/**
  * Default item component. 
  * Text that changes colour if the selected item.
- *@type {React.FC<import("../types").ItemComponentProps>}
+ *@type {React.FC<ItemComponentProps>}
  */
 const ItemComponent = ({
     label,
@@ -22,8 +31,26 @@ const ItemComponent = ({
 }
 
 /**
+ * ScrollMenu onSelect function.
+ * @callback OnSelectFunction
+ * @param {Object} selectedItem Item that was selected.
+ * @return
+ */
+
+/** 
+ * @typedef {Object} ScrollMenuTypes
+ * @property {Array} [items] Array of item property objects.
+ * @property {number} [initialIndex] The index to select initially.
+ * @property {React.ComponentType<any>} [itemComponent] Component to create for items.
+ * @property {OnSelectFunction} [onSelect] Function to call on select.
+ * @property {boolean} [isFocused] If suggestionBox is focused, otherwise it doesn't use input.
+ * 
+ * @typedef {import("./scrollbox").ScrollBoxProps & ScrollMenuTypes} ScrollMenuProps
+ */
+
+/**
  * Scrollable menu. Currently only works vertically.
- * @type {React.FC<import("../types").ScrollMenuProps>}
+ * @type {React.FC<ScrollMenuProps>}
  */
 const ScrollMenu = ({
     items = [],

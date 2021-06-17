@@ -4,11 +4,19 @@ const { _extends } = require("../utils");
 const e = React.createElement;
 
 /**
+ * ColorBox Props
+ * @typedef {Object} ColorBoxTypes
+ * @property {import("../types").Color} [backgroundColor] Background color of the box.
+ * 
+ * @typedef {ink.BoxProps & ColorBoxTypes} ColorBoxProps
+ */
+
+/**
  * Box component filled with color. This component is a hack until Ink implements this natively.
  * If the height or width needs to be measured there may be some flashing or odd behaviour.
  * Any child text needs to have a background set.
  * 
- * @type {React.FC<import("../types").ColorBoxProps>}
+ * @type {React.FC<ColorBoxProps>}
  */
 const ColorBox = React.forwardRef(({
     backgroundColor, 

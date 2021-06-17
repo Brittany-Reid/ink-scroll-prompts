@@ -68,10 +68,21 @@ const keyBar = ({
 }
 
 /**
+ * @typedef {Object} FooterTypes
+ * @property {string | React.ReactElement} [message] Message string or custom text element.
+ * @property {boolean} [suggestionsEnabled] Are suggestions enabled in prompt?
+ * @property {import("../types").Color} [backgroundColor]
+ * @property {import("../types").Color} [color]
+ * @property {Object} [keyBindings] Keybindings used to generate footer.
+ * 
+ * @typedef {FooterTypes} FooterProps
+ */
+
+/**
  * Footer component, used by InputPrompt.
  * Autogenerates keybindings to display on footer.
  * If a non-string message is set, keybindings are replaced by this.
- * @type {React.FC<import("../types").FooterProps>}
+ * @type {React.FC<FooterProps>}
  */
 const Footer = ({
     message,
@@ -101,7 +112,7 @@ const Footer = ({
     if(!useComponent && keyBindings) keys = getKeys();
 
     /**
-     * @type {import("../types").ColorBoxProps}
+     * @type {import("./color-box").ColorBoxProps}
      */
     const colorBoxProps = {
         height:1,
