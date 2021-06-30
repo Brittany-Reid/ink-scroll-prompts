@@ -5,6 +5,10 @@ const { HandledInputPrompt, InputPrompt } = require("./src/components/input-prom
 const useTerminalSize = require("./src/hooks/use-terminal-size");
 const useInput = require("./src/patch/use-input");
 
+/**
+ * @typedef {import("./src/components/input-prompt").InputPromptProps} InputPromptProps
+ */
+
 
 module.exports = {
     ColorBox,
