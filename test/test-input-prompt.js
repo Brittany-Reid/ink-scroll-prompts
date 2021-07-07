@@ -22,6 +22,8 @@ const CTRLA = "\x01";
 const ESC = "\u001B";
 const SHIFTUP = "\u001B[1;2A";
 const SHIFTDOWN = "\u001B[1;2B";
+const F12 = "\u001B[24~";
+const F5 = "\u001B[15~";
 
 describe("InputPrompt", function () {
     const historyFile = "testHistory.json";
@@ -293,6 +295,59 @@ describe("InputPrompt", function () {
             await delay(100);
             const expected = '> ab\n\x1B[7mc\x1B[27md';
             assert.strictEqual(lastFrame(), expected);
+        });
+        it("should move to end of line", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "ab\ncd"});
+            const {lastFrame, stdin, unmount} = render(element);
+            await delay(100);
+            stdin.write(CTRLA)
+            await delay(100);
+            stdin.write(CTRLE)
+            await delay(100);
+            const expected = '> ab\ncd\x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+
+            unmount();
+        });
+        it("should handle additinal keys for existing command", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "a", additionalKeys: {
+                cancel: {
+                    key: {
+                        f12: true,
+                    }
+                },
+                submit: {
+                    key: {
+                        f5:true,
+                    }
+                }
+            }});
+            const {lastFrame, stdin, unmount} = render(element);
+            await delay(100);
+            stdin.write(F12)
+            await delay(100);
+            const expected = '\x1B[2m> \x1B[22m\x1B[2ma\x1B[22m\n';
+            assert.strictEqual(lastFrame(), expected);
+
+            unmount();
+        });
+        it("should handle additinal keys for unhandled command", async function () {
+            var element = e(HandledInputPrompt, {initialInput: "a", useDefaultKeys:false, additionalKeys: {
+                setInput: {
+                    key: {
+                        f5: true,
+                    },
+                    args: ["b"]
+                },
+            }});
+            const {lastFrame, stdin, unmount} = render(element);
+            await delay(100);
+            stdin.write(F5)
+            await delay(100);
+            const expected = '> b\x1B[7m \x1B[27m';
+            assert.strictEqual(lastFrame(), expected);
+
+            unmount();
         });
     });
 

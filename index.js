@@ -7,6 +7,9 @@ const useInput = require("./src/patch/use-input");
 
 /**
  * @typedef {import("./src/components/input-prompt").InputPromptProps} InputPromptProps
+ * @typedef {import("./src/components/input-prompt").HandledInputPromptProps} HandledInputPromptProps
+ * @typedef {import("./src/components/color-box").ColorBoxProps} ColorBoxProps
+ * @typedef {import("./src/components/scroll-menu").ScrollMenuProps} ScrollMenuProps
  */
 
 
