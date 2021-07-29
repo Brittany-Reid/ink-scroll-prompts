@@ -33,7 +33,6 @@ const Scrollbar = ({
 
     //references
     const barRef = React.useRef();
-    const outerRef = React.useRef();
 
     //state
     const [thumbLength, setThumbLength] = React.useState(0);
@@ -69,49 +68,51 @@ const Scrollbar = ({
     var thumbString = " ".repeat(thumbLength*width);
 
     //define the base props for child elements
-
-    const outerProps = {
-        flexShrink: 0,
-        alignItems: "center",
-        flexDirection: "row",
-        overflow:"hidden",
-        ref: outerRef,
-    }
-
     const arrowProps = {
         color:color,
     }
 
-    const thumbStyle = {
+    const outerProps = {
+        width: direction === "vertical" ? width : undefined,
+        height: direction === "horizontal" ? width : "100%",
+        flexDirection: direction === "horizontal" ? "row" : "column",
+        alignItems: "center",
         flexShrink:0,
+        overflow:"hidden",
     }
 
-    //some props need to know the direction
-    if(direction === "horizontal"){
-        outerProps.height = width;
-        thumbStyle.marginLeft = thumbOffset;
+    const barProps = {
+        overflow:"hidden", 
+        ref:barRef, 
+        height: direction === "vertical" ? "100%" : undefined,
+        width: direction === "horizontal" ? "100%" : undefined,
     }
-    else{
-        outerProps.width = width;
-        outerProps.flexDirection = "column";
-        thumbStyle.marginTop = thumbOffset;
+
+    const thumbProps = {
+        flexGrow:0,
+        marginTop: direction === "vertical" ? thumbOffset : undefined,
+        marginleft: direction === "horizontal" ? thumbOffset : undefined,
     }
     
     //outer box
-    return e(ink.Box, _extends(outerProps, props),
+    return e(ink.Box, _extends(outerProps, props), 
         //up arrow
-        e(ink.Text, arrowProps, upArrow),
+        e(ink.Box, {flexShrink:0},
+            e(ink.Text, arrowProps, upArrow),
+        ),
         //bar (thumb + track)
-        e(ink.Box, {flexGrow: 1, flexShrink: 0, ref:barRef}, 
-            //thumb
-            e(ink.Box, thumbStyle, 
+        e(ink.Box, barProps, 
+            e(ink.Box, thumbProps, 
                 //thumbString, coloured
                 e(ink.Text, {backgroundColor:color}, thumbString),
             )
         ),
         //down arrow
-        e(ink.Text, arrowProps, downArrow),
-    );
+        e(ink.Box, {flexShrink:0},
+            e(ink.Text, arrowProps, downArrow),
+        )
+
+    )
 }
 
 module.exports = Scrollbar;
