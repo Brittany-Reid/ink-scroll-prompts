@@ -55,7 +55,7 @@ const ColorBox = React.forwardRef(({
         var line = " ".repeat(width);
         var lines = (line + "\n").repeat(Math.max(0, height - 1)) + line;
         return lines;
-    }, [height, width]);
+    }, [height, width, backgroundColor]);
 
     const innerProps = {
         flexGrow: 1,

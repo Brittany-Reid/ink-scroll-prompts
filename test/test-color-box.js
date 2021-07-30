@@ -6,6 +6,7 @@ const e = React.createElement;
 const {render} = require("./../src/patch/ink-testing-library-patch");
 const { ColorBox } = require("..");
 const delay = require("delay");
+const chalk = require("chalk");
 
 describe("ColorBox", function () {
     describe("unit tests", function () {
@@ -69,6 +70,23 @@ describe("ColorBox", function () {
             await delay(100); //need to wait measure time
             const expected = "\x1B[47m \x1B[49m\n\x1B[47m \x1B[49m";
             assert.strictEqual(lastFrame(), expected);
+        });
+        it("should be able to change color from none", async function () {
+            var box = ({...props}) => {
+                const [backgroundColor, setBackgroundColor] = React.useState(undefined);
+                React.useEffect(()=>{
+                    setTimeout(()=>{
+                        setBackgroundColor("cyan")
+                    }, 1000)
+                }, [])
+                return e(ColorBox, {height:1, width: 1, backgroundColor:backgroundColor});
+            }
+            var element = e(box, {});
+            const {frames} = render(element);
+            await delay(1100); //wait for color change
+            assert.strictEqual(frames[0], "");
+            assert.strictEqual(frames[1], chalk.bgCyan(" "));
+            // assert.strictEqual(lastFrame(), expected);
         });
     });
 });
