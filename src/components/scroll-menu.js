@@ -37,12 +37,20 @@ const ItemComponent = ({
  * @return
  */
 
+/**
+ * ScrollMenu onSelect function.
+ * @callback OnCancelFunction
+ * @param {Object} selectedItem Item that was selected at time of cancel.
+ * @return
+ */
+
 /** 
  * @typedef {Object} ScrollMenuTypes
  * @property {Array} [items] Array of item property objects.
  * @property {number} [initialIndex] The index to select initially.
  * @property {React.ComponentType<any>} [itemComponent] Component to create for items.
  * @property {OnSelectFunction} [onSelect] Function to call on select.
+ * @property {OnCancelFunction} [onCancel] Function to call on cancel.
  * @property {boolean} [isFocused] If suggestionBox is focused, otherwise it doesn't use input.
  * 
  * @typedef {import("./scrollbox").ScrollBoxProps & ScrollMenuTypes} ScrollMenuProps
@@ -57,11 +65,13 @@ const ScrollMenu = ({
     initialIndex = 0,
     itemComponent = ItemComponent,
     onSelect = undefined,
+    onCancel = undefined,
     overflowX = "hidden",
     overflowY,
     flexDirection = "column",
     arrows = false,
     isFocused = true,
+    dimColor,
     ...props
 }) => {
     //state
@@ -96,6 +106,10 @@ const ScrollMenu = ({
         }
         if(key.return){
             if (typeof onSelect === 'function') onSelect(items[selectedIndex]);
+            return;
+        }
+        if(key.escape || (key.ctrl && input === "c")){
+            if (typeof onCancel === 'function') onCancel(items[selectedIndex]);
             return;
         }
     }, {isActive:isFocused});
@@ -144,7 +158,7 @@ const ScrollMenu = ({
             var isSelected;
             if(index === selectedIndex) isSelected = true;
             return e(ink.Box, {key:index}, 
-                e(itemComponent, _extends(item, {isSelected:isSelected}))
+                e(itemComponent, _extends(item, {isSelected:isSelected, dimColor: dimColor}))
             )
         })
     )

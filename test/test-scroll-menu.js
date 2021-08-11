@@ -9,6 +9,7 @@ const delay = require("delay");
 const ENTER = '\r';
 const ARROW_UP = '\u001B[A';
 const ARROW_DOWN = '\u001B[B';
+const ESC = "\u001B";
 
 describe("ScrollMenu", function () {
     describe("unit tests", function () {
@@ -34,6 +35,25 @@ describe("ScrollMenu", function () {
             assert.strictEqual(lastFrame(), "\x1B[36ma\x1B[39m\nb")
             await delay(100);
             unmount();
+        });
+        it("should handle cancel on escape", async function(){
+            var called = false;
+            const onCancel = async (item) =>{
+                called = true;
+                assert.strictEqual(item.label, "a")
+                await delay(100);
+                unmount();
+            }
+
+            var items = [
+                {label: "a"},
+                {label: "b"},
+            ]
+            var element = e(ScrollMenu, {items:items, onCancel:onCancel});
+            var {unmount, stdin} = render(element);
+            stdin.write(ESC);
+            await delay(100);
+            assert(called);
         });
         it("should select item on enter", async function(){
             const onSelect = async (item) =>{
