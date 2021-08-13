@@ -1,4 +1,4 @@
-function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+function _extends() { const _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 function isEmptyObject(obj) {if(Object.keys(obj).length === 0) return true; return false;}
 
@@ -96,6 +96,48 @@ function getLastWord(string){
     //string= before.substring(0, i)
 }
 
+/**
+ * Get the previous word in a string, used for the delete word command.
+ * Looks at characters in reverse order until type doesn't match.
+ * Type is alphanum and other. This way the string `function(arg)` has 4 parts.
+ */
+function getFirstWord(string){
+    var type;
+    var word = "";
+    for(var i = 0; i<string.length; i++){
+        var char = string[i];
+        if(!type){
+            if(!char.match(/\s/g)){
+                if(char.match(/\w/g)){
+                    type = "alphanum";
+                }
+                else{
+                    type = "other"
+                }
+            }
+        }
+        //if we have a type, end on non type
+        else{
+            //whitespace, end
+            if(char.match(/\s/g)){
+                break;
+            }
+            //find non alphanum after deleteing alphanum
+            if(type === "alphanum" && !char.match(/\w/g)){
+                break;
+            }
+            //find alphanum after deleting non alpha   a  d
+            if(type === "other" && char.match(/\w/g)){
+                break;    
+            }
+        }
+        word = word + char;
+    }
+    return word;
+    //string= before.substring(0, i)
+}
+
+
 function isKey(key, input, binding){
     if(!binding) return false;
     if(binding.input && input !== binding.input) return false;
@@ -111,4 +153,5 @@ exports.fixedCharAt = fixedCharAt;
 exports.fixedCharLength = fixedCharLength;
 exports.fixedSubstring = fixedSubstring;
 exports.getLastWord = getLastWord;
+exports.getFirstWord = getFirstWord;
 exports.isKey = isKey;

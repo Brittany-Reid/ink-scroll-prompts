@@ -11,6 +11,9 @@
 Prompts that scroll. Using ink.
 
 ## Install
+
+<details>
+
 The package is currently not published on NPM.
 
 You can install it from GitHub using:
@@ -24,13 +27,19 @@ I recommend using a specific commit using:
 ```
 npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#commit"
 ```
+</details>
 
 ## Usage
+
+<details>
+
 How do I use it???
 
 See the examples in the example folder.
+</details>
 
 ## Components
+<details>
 
 ### `InputPrompt`
 
@@ -81,12 +90,32 @@ If multiline is `false`, disable newlines in input. This enforces no newlines in
 ### `HandledInputPrompt`
 
 InputPrompt, but handles `ink.useInput` for you automatically.
+</details>
+
+## Keybindings
+
+While you can create your own components that handle input, each component already has a handled version with default handling.
+
+
+| KeyBinding | Command | Details |
+| - | - | - |
+| <kbd>return</kbd> | Submit |  |
+| <kbd>escape</kbd> | Cancel |  |
+| <kbd>delete</kbd> | Delete Character | |
+| <kbd>meta</kbd> + <kbd>delete</kbd> | Delete word | <kbd>ctrl</kbd> + <kbd>w</kbd> also works. |
+| <kbd>ctrl</kbd> + <kbd>delete</kbd> | Delete line | <kbd>ctrl</kbd> + <kbd>u</kbd> also works. See [issue](https://github.com/Brittany-Reid/ink-scroll-prompts/issues/1).|
+| <kbd>ctrl</kbd> + <kbd><-</kbd> | Move to line start | See [issue](https://github.com/Brittany-Reid/ink-scroll-prompts/issues/2).|
+| <kbd>ctrl</kbd> + <kbd>-></kbd> | Move to line end | See [issue](https://github.com/Brittany-Reid/ink-scroll-prompts/issues/2).|
+| <kbd>meta</kbd> + <kbd><-</kbd> | Previous Word | |
+| <kbd>meta</kbd> + <kbd>-></kbd> | Next word | |
 
 ## Caveats
+<details>
 - Ink Scroll Prompts uses a fork of ink to access the unreleased overflow property that enables scrolling.
 - The ColorBox implementation is a hack that uses text background colour. If you use text in a ColorBox, you need to set the same background colour on that text. ColorBox also measures the box size before filling and this can cause issues.
 - The scrollbox implementation is full of bugs but it does what I want so.
 - I don't want to use typescript or JSX. 
+</details>
 
 ## License
 

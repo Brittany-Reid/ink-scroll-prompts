@@ -2,9 +2,10 @@ const ink = require("@gnd/ink");
 const React = require("react");
 const wrapAnsi = require("wrap-ansi");
 const {Store} = require('data-store');
-const {_extends, fixedCharAt, fixedSubstring, fixedCharLength, getLastWord } = require("../utils");
+const {_extends, fixedCharAt, fixedSubstring, fixedCharLength, getLastWord, isKey, getFirstWord } = require("../utils");
 const InputText = require("./input-text");
 const useInput = require("../patch/use-input");
+const { inputBoxKeyBindings } = require("../keybindings");
 const e = React.createElement;
 
 const unique = (arr) => arr.filter((v, i) => arr.lastIndexOf(v) === i);
@@ -346,6 +347,24 @@ class InputBox extends React.Component{
         })
     }
 
+    moveCursorPrevWord(){
+        var {input, cursor} = this.state;
+        var before = input.substring(0, cursor);
+
+        var lastWord = getLastWord(before);
+        var toMove = fixedCharLength(lastWord);
+        if(toMove > 0)this.moveCursor(-toMove);
+    }
+
+    moveCursorNextWord(){
+        var {input, cursor} = this.state;
+        var after = input.substring(cursor);
+
+        var nextWord = getFirstWord(after);
+        var toMove = fixedCharLength(nextWord);
+        if(toMove > 0)this.moveCursor(toMove);
+    }
+
     deleteCh(n = 1){
         var {input, cursor} = this.state;
         if(cursor <= 0) return;
@@ -489,6 +508,8 @@ class InputBox extends React.Component{
     }
 }
 
+InputBox.defaultKeyBindings = inputBoxKeyBindings;
+
 InputBox.defaultProps = {
     placeholder: undefined,
     initialInput: "",
@@ -519,67 +540,91 @@ const HandledInputBox = React.forwardRef(({
     ...props
 }, ref) => {
     var innerRef = ref ? ref : React.createRef();
+    const keys = InputBox.defaultKeyBindings;
 
-    const app = ink.useApp();
+    const {exit} = ink.useApp();
+    const {stdout} = ink.useStdout();
+
+    //get actions
+    const actions = React.useMemo(()=>{
+        if(!innerRef) return {};
+        return {
+            submit: () => {
+                innerRef.current.submit();
+            },
+            cancel: () => {
+                innerRef.current.cancel();
+                exit();
+            },
+            moveCursorLeft: (n = 1) => {
+                innerRef.current.moveCursor(-n);
+            },
+            moveCursorRight: (n = 1) => {
+                innerRef.current.moveCursor(n);
+            },
+            moveCursorUp: () => {
+                innerRef.current.moveCursorUp();
+            },
+            moveCursorDown: () => {
+                innerRef.current.moveCursorDown();
+            },
+            deleteCh:(n) => {
+                innerRef.current.deleteCh(n);
+            },
+            deleteLine:()=>{
+                innerRef.current.deleteLine();
+            },
+            deleteWord:()=>{
+                innerRef.current.deleteWord();
+            },
+            moveCursorEndOfLine:()=>{
+                innerRef.current.moveCursorEndOfLine();
+            },
+            moveCursorStartOfLine:()=>{
+                innerRef.current.moveCursorStartOfLine();
+            },
+            moveCursorPrevWord:()=>{
+                innerRef.current.moveCursorPrevWord();
+            },
+            moveCursorNextWord:()=>{
+                innerRef.current.moveCursorNextWord();
+            },
+            historyUp: () => {
+                innerRef.current.historyUp();
+            },
+            historyDown: () => {
+                innerRef.current.historyDown();
+            }
+        }
+    }, [innerRef])
+
 
     useInput(
         (input, key) => {
-            // @ts-ignore
             const currentBox = innerRef.current;
-            if(key.shift && key.upArrow){
-                currentBox.historyUp();
-                return;
+            var keyBindings = Object.keys(keys);
+            for(var kb of keyBindings){
+                var bindings = keys[kb];
+                if(!Array.isArray(bindings)){
+                    bindings = [bindings];
+                }
+                for(var b of bindings){
+                    if(isKey(key, input, b)){
+                        var args = b.args || [];
+                        var action = actions[kb];
+                        if(action) action(...args);
+                    }
+                }
             }
-            if(key.shift && key.downArrow){
-                currentBox.historyDown();
-                return;
+            var wasKey = false;
+            for(var k of Object.keys(key)){
+                if(key[k] === true){
+                    if(k === "shift") continue;
+                    wasKey = true;
+                }
             }
-            if(key.ctrl && input === "e"){
-                currentBox.moveCursorEndOfLine(); 
-                return;
-            }
-            if(key.ctrl && input === "a"){
-                currentBox.moveCursorStartOfLine();
-                return;
-            }
-            if(key.upArrow){
-                currentBox.moveCursorUp();
-                return;
-            }
-            if(key.downArrow){
-                currentBox.moveCursorDown();
-                return;
-            }
-            if(key.return){
-                currentBox.submit();
-                return;
-            }
-            if(key.delete || key.backspace){
-                currentBox.deleteCh(1);
-                return;
-            }
-            if(key.ctrl && input === "w"){
-                currentBox.deleteWord();
-                return;
-            }
-            if(key.ctrl && input === "u"){
-                currentBox.deleteLine();
-                return;
-            }
-            if(key.leftArrow){
-                currentBox.moveCursor(-1);
-                return;
-            }
-            if(key.rightArrow){
-                currentBox.moveCursor(1);
-                return;
-            }
-            if(key.escape || (key.ctrl && input === "c")){
-                currentBox.cancel();
-                app.exit();
-                return;
-            }
-            currentBox.append(input);
+                
+            if(!wasKey) currentBox.append(input);
         }, {isActive: isFocused}
     );
 

@@ -27,7 +27,9 @@ const useInput = (inputHandler, options = {}) => {
         }
 
         const handleData = (data) => {
+
             let input = String(data);
+            
 
             const key = {
                 f1: input === '\u001BOP' || input === '\u001B[11~' || input === '\u001B[[A',
@@ -57,6 +59,19 @@ const useInput = (inputHandler, options = {}) => {
                 delete: input === '\u007F' || input === '\u001B[3~',
                 meta: false
             };
+
+
+            /*
+             * i dont have time to get these working properly, lets just add special cases here
+            */
+            if(input === "\x1B\x7F") {
+                //option + delete in mac term
+                //should i send the actual keys? for vscode it sends ctrl+w
+                key.ctrl = true;
+                inputHandler("w", key);
+                return;
+            }
+
 
             // Copied from `keypress` module
             if (input <= '\u001A' && !key.return) {
