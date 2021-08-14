@@ -41,22 +41,36 @@ const inputBoxKeyBindings = {
         {
             key:{
                 backspace:true,
+                meta: false,
+                ctrl: false,
+                shift: false,
             }
         },
         {
             key:{
                 delete:true,
+                meta: false,
+                ctrl: false,
+                shift: false,
             }
         }  
     ],
-    deleteLine:{
-        key: {
-            ctrl:true,
-            shift:false,
-            meta:false,
+    deleteLine:[
+        {
+            key: {
+                ctrl:true,
+                shift:false,
+                meta:false,
+            },
+            input:"u",
         },
-        input:"u",
-    },
+        {
+            key:{
+                meta:true,
+                backspace: true
+            }
+        }
+    ],
     deleteWord: {
         key:{
             ctrl:true,
@@ -65,30 +79,64 @@ const inputBoxKeyBindings = {
         },
         input:"w",
     },
-    moveCursorEndOfLine: {
-        key:{
-            ctrl: true,
+    moveCursorEndOfLine: [
+        {
+            key:{
+                ctrl: true,
+            },
+            input: "e",
         },
-        input: "e",
-    },
-    moveCursorStartOfLine: {
-        key:{
-            ctrl: true,
+        {
+            key:{
+                ctrl: true,
+                rightArrow: true
+            },
         },
-        input: "a",
-    },
-    moveCursorPrevWord:{
-        key: {
-            meta:true,
+    ],
+    moveCursorStartOfLine: 
+    [
+        {
+            key:{
+                ctrl: true,
+            },
+            input: "a",
         },
-        input: "b"
-    },
-    moveCursorNextWord:{
-        key: {
-            meta:true,
+        {
+            key:{
+                ctrl: true,
+                leftArrow: true
+            },
         },
-        input: "f"
-    },
+    ],
+    moveCursorPrevWord:[
+        {
+            key: {
+                meta:true,
+            },
+            input: "b"
+        },
+        {   
+            key:{
+                leftArrow:true,
+                meta:true
+            }
+        }
+    ],
+    moveCursorNextWord:
+    [
+        {
+            key: {
+                meta:true,
+            },
+            input: "f"
+        },
+        {   
+            key:{
+                rightArrow:true,
+                meta:true
+            }
+        }
+    ],
     historyUp: {
         key:{
             shift:true,

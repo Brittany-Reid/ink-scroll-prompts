@@ -10,6 +10,7 @@ const e = React.createElement;
 
 const unique = (arr) => arr.filter((v, i) => arr.lastIndexOf(v) === i);
 const compact = (arr) => unique(arr).filter(Boolean);
+const initialHistory = 0;
 
 /**
  * InputBox onSubmit function
@@ -68,6 +69,9 @@ class InputBox extends React.Component{
         this.ref = React.createRef();
         var initialInput = this.validateInput(this.props.initialInput);
 
+        this.historyIndex = initialHistory; //index we are at in history, -1 empty, 0 non history, 1 = 0 index of history store
+        this.inputAtHistory = undefined; //save input here on history
+
         this.state = {
             input:  initialInput, //current input
             cursor: initialInput.length, //current cursor position
@@ -81,6 +85,10 @@ class InputBox extends React.Component{
     componentDidUpdate(prevProps, prevState, snapshot){
         if(prevProps.historyFile !== this.props.historyFile){
             this.initHistory();
+        }
+        if(!prevState.typed && this.state.typed){
+            this.historyIndex = 0;
+            this.inputAtHistory = undefined;
         }
         this.onUpdate();
     }
@@ -100,12 +108,10 @@ class InputBox extends React.Component{
         if(typeof this.props.historyFile === "string" && this.props.historyFile.length > 0){
             this.store = new Store({path: this.props.historyFile});
             this.history = this.store.get("history") || { past: [] };
-            this.historyIndex = -1;
         }
         else{
             this.store = undefined;
             this.history = undefined;
-            this.historyIndex = -1;
         }
     }
 
@@ -136,7 +142,7 @@ class InputBox extends React.Component{
                 past: compact(past),
             };
             this.store.set("history", this.history);
-            this.historyIndex = -1;
+            this.historyIndex = initialHistory;
         }
     }
 
@@ -205,13 +211,29 @@ class InputBox extends React.Component{
         var past = this.history.past;
         if (!past || past.length < 1) return;
 
+        //current history is zero, save
+        if(this.historyIndex === 0) this.inputAtHistory = this.state.input;
+
+        //get next history index
         this.historyIndex += 1;
-        if(this.historyIndex >= past.length) {
-            this.historyIndex = past.length-1;
+        //if should be none, get saved
+        if(this.historyIndex === 0){
+            //if empty skip
+            if(this.inputAtHistory.trim().length < 1){
+                this.historyIndex += 1;
+            }
+            else{
+                this.setInput(this.inputAtHistory);
+                return;
+            }
+        }
+        //if reach end of history, do nothing
+        if((this.historyIndex-1) >= past.length) {
+            this.historyIndex = past.length;
             return;
         }
-
-        var index = (past.length-1)-this.historyIndex;
+        //otherwise
+        var index = (past.length-1)-(this.historyIndex-1);
         var previous = past[index];
         if(!previous) return;
         this.setInput(previous);
@@ -221,15 +243,33 @@ class InputBox extends React.Component{
         if(!this.store) return;
         var past = this.history.past;
         if (!past || past.length < 1) return;
+
+        //current history is zero, save
+        if(this.historyIndex === 0) this.inputAtHistory = this.state.input;
         
+        //get next history
         this.historyIndex -= 1;
+        //should be none get saved
+        if(this.historyIndex === 0){
+            //on empty skip
+            if(this.inputAtHistory.trim().length < 1){
+                this.historyIndex -= 1;
+            }
+            else{
+                this.setInput(this.inputAtHistory);
+                return;
+            }
+        }
+        //less than -1, clear and set back to -1
         if(this.historyIndex < -1) this.historyIndex = -1;
         if(this.historyIndex === -1) return this.setInput("");
 
-        var index = (past.length-1)-this.historyIndex;
+        //otherwise
+        var index = (past.length-1)-(this.historyIndex-1);
         var previous = past[index];
-        if(!previous) return;
-        this.historyIndex--;
+        if(!previous) {
+            return;
+        }
         this.setInput(previous);
     }
 
@@ -246,7 +286,7 @@ class InputBox extends React.Component{
         var direction = Math.sign(n);
         var between, last;
         if(direction === 1){
-            var after = input.slice(cursor+cursorWidth);
+            var after = input.slice(cursor);
             between = fixedSubstring(after, 0, chars);
             last = fixedCharAt(after, chars-1);
         }
@@ -623,7 +663,6 @@ const HandledInputBox = React.forwardRef(({
                     wasKey = true;
                 }
             }
-                
             if(!wasKey) currentBox.append(input);
         }, {isActive: isFocused}
     );
@@ -633,7 +672,7 @@ const HandledInputBox = React.forwardRef(({
 
 
 // var app;
-// var el = e(HandledInputBox, {historyFile: "history.json", onSubmit: (input) => {app.unmount()}});
+// var el = e(HandledInputBox, {historyFile: "history.json", multiline:true, onSubmit: (input) => {app.unmount()}});
 // app = ink.render(el);
 
 exports.InputBox = InputBox;
