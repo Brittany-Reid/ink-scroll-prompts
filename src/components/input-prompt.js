@@ -8,6 +8,7 @@ const Prompt = require("./prompt");
 const Footer = require("./footer");
 const AutoComplete = require("./auto-complete");
 const useInput = require("../patch/use-input");
+const { inputPromptKeyBindings } = require("../keybindings");
 
 const e = React.createElement;
 
@@ -37,113 +38,6 @@ const e = React.createElement;
  * 
  * @typedef {Pick<import("./auto-complete").AutoCompleteTypes, "completions" | "complete"> & Pick<import("./suggestion-box").SuggestionBoxTypes, "suggestions" | "suggest">  & import("./scrollbox").ScrollBoxProps & import("./input-box").InputBoxProps & import("./prompt").PromptTypes & InputPromptTypes} InputPromptProps
  */
-
-const defaultKeyBindings = {
-    historyUp: {
-        key:{
-            shift:true,
-            upArrow: true,
-            ctrl:false,
-        }
-    },
-    historyDown: {
-        key:{
-            shift:true,
-            downArrow: true,
-            ctrl:false,
-        }
-    },
-    moveCursorEndOfLine: {
-        key:{
-            ctrl: true,
-        },
-        input: "e",
-    },
-    moveCursorStartOfLine: {
-        key:{
-            ctrl: true,
-        },
-        input: "a",
-    },
-    moveCursorUp:{
-        key: {
-            upArrow: true,
-            shift:false,
-            ctrl:false,
-        },
-    },
-    moveCursorDown:{
-        key: {
-            downArrow: true,
-            shift:false,
-            ctrl:false,
-        },
-    },
-    moveCursorLeft:{
-        key: {
-            leftArrow: true,
-            shift:false,
-            ctrl:false,
-        },
-    },
-    moveCursorRight:{
-        key: {
-            rightArrow: true,
-            shift:false,
-            ctrl:false,
-        },
-    },
-    toggleSuggest: {
-        key:{
-            tab:true,
-        }
-    },
-    submit:{
-        key:{
-            return:true,
-        }
-    },
-    deleteCh:[
-        {
-            key:{
-                backspace:true,
-            }
-        },
-        {
-            key:{
-                delete:true,
-            }
-        }  
-    ],
-    deleteLine:{
-        key: {
-            ctrl:true,
-            shift:false,
-            meta:false,
-        },
-        input:"u",
-    },
-    deleteWord: {
-        key:{
-            ctrl:true,
-            shift:false,
-            meta:false,
-        },
-        input:"w",
-    },
-    cancel:[
-        {
-            key:{
-                escape: true,
-            }
-        },
-        {
-            key:{
-                ctrl: true,
-            },
-            input: "c"
-        }]
-}
 
 
 /**
@@ -280,6 +174,16 @@ class InputPrompt extends React.Component{
         const {suggesting} = this.state;
         if(suggesting) return;
         this.inputBoxRef.current.moveCursorUp()
+    }
+    moveCursorPrevWord(){
+        const {suggesting} = this.state;
+        if(suggesting) return;
+        this.inputBoxRef.current.moveCursorPrevWord()
+    }
+    moveCursorNextWord(){
+        const {suggesting} = this.state;
+        if(suggesting) return;
+        this.inputBoxRef.current.moveCursorNextWord()
     }
     moveCursorEndOfLine(){
         const {suggesting} = this.state;
@@ -543,7 +447,7 @@ InputPrompt.defaultProps = {
     overflowX: "hidden",
 }
 
-InputPrompt.defaultKeyBindings = defaultKeyBindings;
+InputPrompt.defaultKeyBindings = inputPromptKeyBindings;
 
 
 /**
@@ -647,6 +551,12 @@ const HandledInputPrompt = React.forwardRef(({
             },
             historyDown: () => {
                 innerRef.current.historyDown();
+            },
+            moveCursorPrevWord:()=>{
+                innerRef.current.moveCursorPrevWord();
+            },
+            moveCursorNextWord:()=>{
+                innerRef.current.moveCursorNextWord();
             }
         }
     }, [innerRef])

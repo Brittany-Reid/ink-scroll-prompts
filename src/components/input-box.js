@@ -2,13 +2,15 @@ const ink = require("@gnd/ink");
 const React = require("react");
 const wrapAnsi = require("wrap-ansi");
 const {Store} = require('data-store');
-const {_extends, fixedCharAt, fixedSubstring, fixedCharLength, getLastWord } = require("../utils");
+const {_extends, fixedCharAt, fixedSubstring, fixedCharLength, getLastWord, isKey, getFirstWord } = require("../utils");
 const InputText = require("./input-text");
 const useInput = require("../patch/use-input");
+const { inputBoxKeyBindings } = require("../keybindings");
 const e = React.createElement;
 
 const unique = (arr) => arr.filter((v, i) => arr.lastIndexOf(v) === i);
 const compact = (arr) => unique(arr).filter(Boolean);
+const initialHistory = 0;
 
 /**
  * InputBox onSubmit function
@@ -67,6 +69,9 @@ class InputBox extends React.Component{
         this.ref = React.createRef();
         var initialInput = this.validateInput(this.props.initialInput);
 
+        this.historyIndex = initialHistory; //index we are at in history, -1 empty, 0 non history, 1 = 0 index of history store
+        this.inputAtHistory = undefined; //save input here on history
+
         this.state = {
             input:  initialInput, //current input
             cursor: initialInput.length, //current cursor position
@@ -80,6 +85,10 @@ class InputBox extends React.Component{
     componentDidUpdate(prevProps, prevState, snapshot){
         if(prevProps.historyFile !== this.props.historyFile){
             this.initHistory();
+        }
+        if(!prevState.typed && this.state.typed){
+            this.historyIndex = 0;
+            this.inputAtHistory = undefined;
         }
         this.onUpdate();
     }
@@ -99,12 +108,10 @@ class InputBox extends React.Component{
         if(typeof this.props.historyFile === "string" && this.props.historyFile.length > 0){
             this.store = new Store({path: this.props.historyFile});
             this.history = this.store.get("history") || { past: [] };
-            this.historyIndex = -1;
         }
         else{
             this.store = undefined;
             this.history = undefined;
-            this.historyIndex = -1;
         }
     }
 
@@ -135,7 +142,7 @@ class InputBox extends React.Component{
                 past: compact(past),
             };
             this.store.set("history", this.history);
-            this.historyIndex = -1;
+            this.historyIndex = initialHistory;
         }
     }
 
@@ -204,13 +211,29 @@ class InputBox extends React.Component{
         var past = this.history.past;
         if (!past || past.length < 1) return;
 
+        //current history is zero, save
+        if(this.historyIndex === 0) this.inputAtHistory = this.state.input;
+
+        //get next history index
         this.historyIndex += 1;
-        if(this.historyIndex >= past.length) {
-            this.historyIndex = past.length-1;
+        //if should be none, get saved
+        if(this.historyIndex === 0){
+            //if empty skip
+            if(this.inputAtHistory.trim().length < 1){
+                this.historyIndex += 1;
+            }
+            else{
+                this.setInput(this.inputAtHistory);
+                return;
+            }
+        }
+        //if reach end of history, do nothing
+        if((this.historyIndex-1) >= past.length) {
+            this.historyIndex = past.length;
             return;
         }
-
-        var index = (past.length-1)-this.historyIndex;
+        //otherwise
+        var index = (past.length-1)-(this.historyIndex-1);
         var previous = past[index];
         if(!previous) return;
         this.setInput(previous);
@@ -220,15 +243,33 @@ class InputBox extends React.Component{
         if(!this.store) return;
         var past = this.history.past;
         if (!past || past.length < 1) return;
+
+        //current history is zero, save
+        if(this.historyIndex === 0) this.inputAtHistory = this.state.input;
         
+        //get next history
         this.historyIndex -= 1;
+        //should be none get saved
+        if(this.historyIndex === 0){
+            //on empty skip
+            if(this.inputAtHistory.trim().length < 1){
+                this.historyIndex -= 1;
+            }
+            else{
+                this.setInput(this.inputAtHistory);
+                return;
+            }
+        }
+        //less than -1, clear and set back to -1
         if(this.historyIndex < -1) this.historyIndex = -1;
         if(this.historyIndex === -1) return this.setInput("");
 
-        var index = (past.length-1)-this.historyIndex;
+        //otherwise
+        var index = (past.length-1)-(this.historyIndex-1);
         var previous = past[index];
-        if(!previous) return;
-        this.historyIndex--;
+        if(!previous) {
+            return;
+        }
         this.setInput(previous);
     }
 
@@ -245,7 +286,7 @@ class InputBox extends React.Component{
         var direction = Math.sign(n);
         var between, last;
         if(direction === 1){
-            var after = input.slice(cursor+cursorWidth);
+            var after = input.slice(cursor);
             between = fixedSubstring(after, 0, chars);
             last = fixedCharAt(after, chars-1);
         }
@@ -344,6 +385,24 @@ class InputBox extends React.Component{
         this.setState({
             cursor: Math.max(0, Math.min(cursor+moveBy, input.length)),
         })
+    }
+
+    moveCursorPrevWord(){
+        var {input, cursor} = this.state;
+        var before = input.substring(0, cursor);
+
+        var lastWord = getLastWord(before);
+        var toMove = fixedCharLength(lastWord);
+        if(toMove > 0)this.moveCursor(-toMove);
+    }
+
+    moveCursorNextWord(){
+        var {input, cursor} = this.state;
+        var after = input.substring(cursor);
+
+        var nextWord = getFirstWord(after);
+        var toMove = fixedCharLength(nextWord);
+        if(toMove > 0)this.moveCursor(toMove);
     }
 
     deleteCh(n = 1){
@@ -489,6 +548,8 @@ class InputBox extends React.Component{
     }
 }
 
+InputBox.defaultKeyBindings = inputBoxKeyBindings;
+
 InputBox.defaultProps = {
     placeholder: undefined,
     initialInput: "",
@@ -519,67 +580,90 @@ const HandledInputBox = React.forwardRef(({
     ...props
 }, ref) => {
     var innerRef = ref ? ref : React.createRef();
+    const keys = InputBox.defaultKeyBindings;
 
-    const app = ink.useApp();
+    const {exit} = ink.useApp();
+    const {stdout} = ink.useStdout();
+
+    //get actions
+    const actions = React.useMemo(()=>{
+        if(!innerRef) return {};
+        return {
+            submit: () => {
+                innerRef.current.submit();
+            },
+            cancel: () => {
+                innerRef.current.cancel();
+                exit();
+            },
+            moveCursorLeft: (n = 1) => {
+                innerRef.current.moveCursor(-n);
+            },
+            moveCursorRight: (n = 1) => {
+                innerRef.current.moveCursor(n);
+            },
+            moveCursorUp: () => {
+                innerRef.current.moveCursorUp();
+            },
+            moveCursorDown: () => {
+                innerRef.current.moveCursorDown();
+            },
+            deleteCh:(n) => {
+                innerRef.current.deleteCh(n);
+            },
+            deleteLine:()=>{
+                innerRef.current.deleteLine();
+            },
+            deleteWord:()=>{
+                innerRef.current.deleteWord();
+            },
+            moveCursorEndOfLine:()=>{
+                innerRef.current.moveCursorEndOfLine();
+            },
+            moveCursorStartOfLine:()=>{
+                innerRef.current.moveCursorStartOfLine();
+            },
+            moveCursorPrevWord:()=>{
+                innerRef.current.moveCursorPrevWord();
+            },
+            moveCursorNextWord:()=>{
+                innerRef.current.moveCursorNextWord();
+            },
+            historyUp: () => {
+                innerRef.current.historyUp();
+            },
+            historyDown: () => {
+                innerRef.current.historyDown();
+            }
+        }
+    }, [innerRef])
+
 
     useInput(
         (input, key) => {
-            // @ts-ignore
             const currentBox = innerRef.current;
-            if(key.shift && key.upArrow){
-                currentBox.historyUp();
-                return;
+            var keyBindings = Object.keys(keys);
+            for(var kb of keyBindings){
+                var bindings = keys[kb];
+                if(!Array.isArray(bindings)){
+                    bindings = [bindings];
+                }
+                for(var b of bindings){
+                    if(isKey(key, input, b)){
+                        var args = b.args || [];
+                        var action = actions[kb];
+                        if(action) action(...args);
+                    }
+                }
             }
-            if(key.shift && key.downArrow){
-                currentBox.historyDown();
-                return;
+            var wasKey = false;
+            for(var k of Object.keys(key)){
+                if(key[k] === true){
+                    if(k === "shift") continue;
+                    wasKey = true;
+                }
             }
-            if(key.ctrl && input === "e"){
-                currentBox.moveCursorEndOfLine(); 
-                return;
-            }
-            if(key.ctrl && input === "a"){
-                currentBox.moveCursorStartOfLine();
-                return;
-            }
-            if(key.upArrow){
-                currentBox.moveCursorUp();
-                return;
-            }
-            if(key.downArrow){
-                currentBox.moveCursorDown();
-                return;
-            }
-            if(key.return){
-                currentBox.submit();
-                return;
-            }
-            if(key.delete || key.backspace){
-                currentBox.deleteCh(1);
-                return;
-            }
-            if(key.ctrl && input === "w"){
-                currentBox.deleteWord();
-                return;
-            }
-            if(key.ctrl && input === "u"){
-                currentBox.deleteLine();
-                return;
-            }
-            if(key.leftArrow){
-                currentBox.moveCursor(-1);
-                return;
-            }
-            if(key.rightArrow){
-                currentBox.moveCursor(1);
-                return;
-            }
-            if(key.escape || (key.ctrl && input === "c")){
-                currentBox.cancel();
-                app.exit();
-                return;
-            }
-            currentBox.append(input);
+            if(!wasKey) currentBox.append(input);
         }, {isActive: isFocused}
     );
 
@@ -588,7 +672,7 @@ const HandledInputBox = React.forwardRef(({
 
 
 // var app;
-// var el = e(HandledInputBox, {historyFile: "history.json", onSubmit: (input) => {app.unmount()}});
+// var el = e(HandledInputBox, {historyFile: "history.json", multiline:true, onSubmit: (input) => {app.unmount()}});
 // app = ink.render(el);
 
 exports.InputBox = InputBox;
