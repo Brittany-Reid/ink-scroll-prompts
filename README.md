@@ -1,7 +1,7 @@
 <table>
 <tr>
 <td>
-⚠️ Ink Scroll Prompts is experimental. 
+⚠️ Ink Scroll Prompts is experimental.
 </td>
 </tr>
 </table>
@@ -12,9 +12,9 @@
 <img src="assets/media/scroll.gif"/>
 </p>
 
-Prompts that scroll. Using ink.
+Prompts that scroll. Using ink. 🎉
 
-## Install
+## Install 
 
 <details>
 
@@ -33,7 +33,7 @@ npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#comm
 ```
 </details>
 
-## Usage
+## Usage 🧑‍💻
 
 <details>
 
@@ -116,7 +116,7 @@ While you can create your own components that handle input, each component alrea
 
 <kbd>meta</kbd> is equivalent to Alt on Windows and Option on Mac. You may need to enable the use of Option as Meta on Mac.
 
-## Caveats
+## Caveats 💅
 <details>
 
 - Ink Scroll Prompts uses a fork of ink to access the unreleased overflow property that enables scrolling.
@@ -127,4 +127,4 @@ While you can create your own components that handle input, each component alrea
 
 ## License
 
-Unlicense. Do what you want with it.
+Unlicense. Do what you want with it. ❤️
