@@ -121,9 +121,11 @@ class InputBox extends React.Component{
     validateInput(input){
         if(!input) return input;
         //remove carriage returns
-        input = input.replace("\r\n", "\n").replace("\r", "\n");
+        input = input.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+        //remove tabs
+        input = input.replaceAll("\t", "  ");
         if(!this.props.multiline && this.props.disableNewlines){
-            input = input.replace("\n", "")
+            input = input.replaceAll("\n", "")
         }
         return input;
     }

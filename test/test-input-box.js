@@ -377,6 +377,12 @@ describe("InputBox", function () {
             const expected = '> \x1B[7m \x1B[27m';
             assert.strictEqual(app.lastFrame(), expected);
         });
+        it("should replace tabs with 2 spaces", function (){
+            var element = e(InputBox, {initialInput: "\tA"});
+            var app = render(element);
+            assert(app.lastFrame().startsWith("  A"))
+            app.unmount();
+        });
     });
     describe("history", function(){
         it("should add to history", async function () {
