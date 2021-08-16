@@ -8,7 +8,9 @@
 
 # Ink Scroll Prompts
 
+<p align="center">
 <img src="assets/media/scroll.gif"/>
+</p>
 
 Prompts that scroll. Using ink.
 
