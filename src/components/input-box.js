@@ -117,15 +117,17 @@ class InputBox extends React.Component{
 
     /**
      * Format any input for us.
+     * I use multiple regex bc i hate debugging regex and simple is nicer :)
      */
     validateInput(input){
         if(!input) return input;
         //remove carriage returns
-        input = input.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+        input = input.replace(/\r\n/g, "\n");
+        input = input.replace(/\r/g, "\n");
         //remove tabs
-        input = input.replaceAll("\t", "  ");
+        input = input.replace(/\t/g, "  ");
         if(!this.props.multiline && this.props.disableNewlines){
-            input = input.replaceAll("\n", "")
+            input = input.replace(/\n/g, "")
         }
         return input;
     }
