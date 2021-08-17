@@ -406,7 +406,7 @@ class InputPrompt extends React.Component{
                 e(ink.Box, {flexDirection:"column", overflow:"hidden", key:1},
                     e(ink.Text, {}, 
                         e(Prompt, promptProps),
-                        e(ink.Text, inputBoxProps, this.inputBoxRef.current.state.input)
+                        e(ink.Text, inputBoxProps, this.inputBoxRef.current.state.input.trim())
                     )
                 )
             )

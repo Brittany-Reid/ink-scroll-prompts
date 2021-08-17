@@ -8,6 +8,7 @@ const delay = require("delay");
 const {render} = require("../src/patch/ink-testing-library-patch");
 const chalk = require("chalk");
 const fs = require("fs");
+const {press, keys} = require("../src/test-utils")
 
 const ENTER = '\r';
 const ARROW_UP = '\u001B[A';
@@ -180,23 +181,43 @@ describe("InputPrompt", function () {
             const expected = "Hello world";
             var lastFrame;
 
-            var result = await new Promise(async (resolve) => {
-                var onCancel = async (input) =>{
-                    resolve(input);
-                }
-                var element = e(HandledInputPrompt, {initialInput: expected, onCancel: onCancel});
-                var app = render(element);
-                lastFrame = app.lastFrame;
-                await delay(100);
-                app.stdin.write(ESC);
-                //await delay(100);
-                app.unmount();
-                resolve()
-            });
+            var canceled = false;
+            var inputOnCancel = undefined;
 
-            assert.strictEqual(result, expected);
+            var onCancel = async (input) =>{
+                canceled = true;
+                inputOnCancel = input;
+            }
+
+            var element = e(HandledInputPrompt, {initialInput: expected, onCancel: onCancel});
+            var app = render(element);
+            await press(keys.ESC, app);
+            app.unmount();
+            assert.strictEqual(inputOnCancel, expected);
+            assert.strictEqual(canceled, true);
             //ensure timing, this should be in canceled dimmed state
-            assert.strictEqual(lastFrame(), "\x1B[2m> \x1B[22m\x1B[2mHello world\x1B[22m\n")
+            assert.strictEqual(app.lastFrame(), "\x1B[2m> \x1B[22m\x1B[2mHello world\x1B[22m\n")
+        });
+        it("should trim newlines on cancel", async function () {
+            const expected = "Hello world\n\n";
+            var lastFrame;
+
+            var canceled = false;
+            var inputOnCancel = undefined;
+
+            var onCancel = async (input) =>{
+                canceled = true;
+                inputOnCancel = input;
+            }
+
+            var element = e(HandledInputPrompt, {initialInput: expected, onCancel: onCancel});
+            var app = render(element);
+            await press(keys.ESC, app);
+            app.unmount();
+            assert.strictEqual(inputOnCancel, expected);
+            assert.strictEqual(canceled, true);
+            //ensure timing, this should be in canceled dimmed state
+            assert.strictEqual(app.lastFrame(), "\x1B[2m> \x1B[22m\x1B[2mHello world\x1B[22m\n")
         });
         it("should be able to use last command", async function () {
             var app;
