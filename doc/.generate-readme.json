@@ -11,7 +11,7 @@
                 "hideContents": true
             },
             {
-                "name": "components",
+                "name": "Components",
                 "hideContents": true,
                 "file": false,
                 "children": [
@@ -25,6 +25,10 @@
             },
             {
                 "name": "keybindings.md",
+                "hideContents": true
+            },
+            {
+                "name": "testing.md",
                 "hideContents": true
             },
             {

@@ -42,6 +42,7 @@ const initialHistory = 0;
  * @property {string} [historyFile] Path to history JSON file. Creates if file doesn't exist.
  * @property {boolean} [multiline]  Allow multiline controls. Enables down to add newlines.
  * @property {boolean} [disableNewlines] If multiline is also false, remove newlines from input. Doesn't control wrap.
+ * @property {boolean} [newlineOnDown] Default true, newline on cursor down on last line.
  * @property {React.ReactElement | string | null} [promptElement] To use a prompt, supply a text element here.
  * @property {number} [promptOffset] The offset caused by the prompt text.
  * @property {OnUpdateFunction} [onUpdate] Function to call on component update. Reports cursor position. You can use this to message parent about updates.
@@ -310,7 +311,7 @@ class InputBox extends React.Component{
         const {input, cursor, cursorWidth} = this.state;
         //add new line
         if(cursor > input.length-1) {
-            if(this.props.multiline) this.append("\n");
+            if(this.props.multiline && this.props.newlineOnDown) this.append("\n");
             return;
         }
         var lines = this.getLines();
@@ -563,6 +564,7 @@ InputBox.defaultProps = {
     onUpdate: undefined,
     multiline:false,
     disableNewlines: false,
+    newlineOnDown: true,
     historyFile: undefined,
 }
 
@@ -593,6 +595,9 @@ const HandledInputBox = React.forwardRef(({
     const actions = React.useMemo(()=>{
         if(!innerRef) return {};
         return {
+            append: (s) => {
+                innerRef.current.append(s);
+            },
             submit: () => {
                 innerRef.current.submit();
             },
@@ -673,11 +678,6 @@ const HandledInputBox = React.forwardRef(({
 
     return e(InputBox, _extends({ref:innerRef}, props));
 });
-
-
-// var app;
-// var el = e(HandledInputBox, {historyFile: "history.json", multiline:true, onSubmit: (input) => {app.unmount()}});
-// app = ink.render(el);
 
 exports.InputBox = InputBox;
 exports.HandledInputBox = HandledInputBox;

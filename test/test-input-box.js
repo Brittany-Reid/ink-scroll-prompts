@@ -80,202 +80,215 @@ describe("InputBox", function () {
         });
     });
     describe("input handling", function () {
-        it("should allow append single char", async function () {
+        describe("cursor movement", function () {
+            it("should move cursor backwards", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab"});
+                var app = render(element);
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_LEFT, app)
+                //cursor + ab
+                const expected = '\x1B[7ma\x1B[27mb';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should not be able to move past pos 0", async function () {
+                var element = e(HandledInputBox, {});
+                var app = render(element);
+                await press(keys.ARROW_LEFT, app)
+                //cursor + ab
+                const expected = '\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move cursor forward", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab"});
+                var app = render(element);
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_RIGHT, app)
+                //a + cursor + b
+                const expected = 'a\x1B[7mb\x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should not be able to move past input length", async function () {
+                var element = e(HandledInputBox, {});
+                var app = render(element);
+                await press(keys.ARROW_RIGHT, app)
+                //cursor + ab
+                const expected = '\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move cursor up", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncde\nef"});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                const expected = 'ab\ncd\x1B[7me\x1B[27m\nef';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move cursor down", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncd\ne"});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\ncd\ne\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move cursor down when cursor is newline", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncd"});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\ncd\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to same position on next line when wrapped", async function () {
+                var element = e(HandledInputBox, {initialInput: "abcdefgh", width:4});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'abcd\nef\x1B[7mg\x1B[27mh';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move cursor up to pos 0", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncd"});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                await press(keys.ARROW_UP, app)
+                const expected = '\x1B[7ma\x1B[27mb\ncd';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should not be able to move up past pos 0", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab"});
+                var app = render(element);
+                await press(keys.ARROW_UP, app)
+                await press(keys.ARROW_UP, app)
+                const expected = '\x1B[7ma\x1B[27mb';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to start of line", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncd"});
+                var app = render(element);
+                await press(keys.CTRLA, app)
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.CTRLA, app)
+                await press(keys.CTRLA, app)
+                //moves to start of line 2 then start of line 1
+                const expected = '\x1B[7ma\x1B[27mb\ncd';
+                assert.strictEqual(app.frames[1], "ab\n\x1B[7mc\x1B[27md");
+                assert.strictEqual(app.frames[3], expected);
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to start of line even if truncate is set", async function () {
+                var element = e(HandledInputBox, {initialInput: "hello world", width:2, wrap:"truncate"});
+                var app = render(element);
+                await press(keys.CTRLA, app)
+                const expected = '\x1B[7mh\x1B[27m…';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to end of line", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab\ncd"});
+                var app = render(element);
+                await press(keys.CTRLA, app)
+                await press(keys.ARROW_UP, app)
+                await press(keys.CTRLE, app)
+                await press(keys.CTRLE, app)
+                await press(keys.ARROW_RIGHT, app)
+                await press(keys.CTRLE, app)
+                await press(keys.CTRLE, app)
+                const expected = 'ab\ncd\x1B[7m \x1B[27m';
+                assert.strictEqual(app.frames[2], "\x1B[7ma\x1B[27mb\ncd");
+                assert.strictEqual(app.frames[3], "ab\x1B[7m \x1B[27m\n\x1B[7m\x1B[27mcd");
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to previous word", async function () {
+                var element = e(HandledInputBox, {initialInput: "hello world"});
+                var app = render(element);
+                await press(keys.ALTB, app);
+                assert.strictEqual(app.lastFrame(), "hello \x1B[7mw\x1B[27morld")
+                app.unmount();
+            });
+            it("should move to next word", async function () {
+                var element = e(HandledInputBox, {initialInput: "hello world"});
+                var app = render(element);
+                await press(keys.ALTB, app);
+                await press(keys.ALTF, app);
+                assert.strictEqual(app.lastFrame(), "hello world\x1B[7m \x1B[27m")
+                app.unmount();
+            });
+        });
+        describe("multiline handling", function () {
+            it("should add line at cursor down on last line and multiline true", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab", multiline:true});
+                var app = render(element);
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\n\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should be able to disable line down newline", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab", multiline:true, newlineOnDown: false});
+                var app = render(element);
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should move to end of line on cursor down on last line and multiline false", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab", multiline:false});
+                var app = render(element);
+                await press(keys.ARROW_LEFT, app)
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should handle cursor down on last char and multiline false", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab", multiline:false});
+                var app = render(element);
+                await press(keys.ARROW_DOWN, app)
+                const expected = 'ab\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+        });
+        describe("deletion", function () {
+            it("should delete characters", async function () {
+                var element = e(HandledInputBox, {initialInput: "ab"});
+                var app = render(element);
+                await press(keys.DELETE, app)
+                await press(keys.DELETE, app)
+                await press(keys.DELETE, app)
+                const expected = '\x1B[7m \x1B[27m';
+                assert.strictEqual(app.frames[1], "a\x1B[7m \x1B[27m")
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should delete word", async function () {
+                var element = e(HandledInputBox, {initialInput: "Hello world"});
+                var app = render(element);
+                await press(keys.CTRLW, app)
+                //a + cursor
+                const expected = 'Hello \x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should delete line", async function () {
+                var element = e(HandledInputBox, {initialInput: "Hello world 2"});
+                var app = render(element);
+                await press(keys.CTRLU, app)
+                //a + cursor
+                const expected = '\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+            it("should go up line when deleting empty line", async function () {
+                var element = e(HandledInputBox, {initialInput: "Hello\n"});
+                var app = render(element);
+                await press(keys.CTRLU, app)
+                //a + cursor
+                const expected = 'Hello\x1B[7m \x1B[27m';
+                assert.strictEqual(app.lastFrame(), expected);
+            });
+        });
+        it("can type a character", async function () {
             var element = e(HandledInputBox, {});
             const app = render(element);
             await write("a", app);
             //a + cursor
             const expected = 'a\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor backwards", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab"});
-            var app = render(element);
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_LEFT, app)
-            //cursor + ab
-            const expected = '\x1B[7ma\x1B[27mb';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should not be able to move past pos 0", async function () {
-            var element = e(HandledInputBox, {});
-            var app = render(element);
-            await press(keys.ARROW_LEFT, app)
-            //cursor + ab
-            const expected = '\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor forward", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab"});
-            var app = render(element);
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_RIGHT, app)
-            //a + cursor + b
-            const expected = 'a\x1B[7mb\x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should not be able to move past input length", async function () {
-            var element = e(HandledInputBox, {});
-            var app = render(element);
-            await press(keys.ARROW_RIGHT, app)
-            //cursor + ab
-            const expected = '\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor up", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncde\nef"});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            const expected = 'ab\ncd\x1B[7me\x1B[27m\nef';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor down", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncd\ne"});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'ab\ncd\ne\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor down when cursor is newline", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncd"});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'ab\ncd\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should add line at cursor down on last line and multiline true", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab", multiline:true});
-            var app = render(element);
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'ab\n\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to end of line on cursor down on last line and multiline false", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab", multiline:false});
-            var app = render(element);
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'ab\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to same position on next line when wrapped", async function () {
-            var element = e(HandledInputBox, {initialInput: "abcdefgh", width:4});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'abcd\nef\x1B[7mg\x1B[27mh';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should handle cursor down on last char and multiline false", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab", multiline:false});
-            var app = render(element);
-            await press(keys.ARROW_DOWN, app)
-            const expected = 'ab\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move cursor up to pos 0", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncd"});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            await press(keys.ARROW_UP, app)
-            const expected = '\x1B[7ma\x1B[27mb\ncd';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should not be able to move up past pos 0", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab"});
-            var app = render(element);
-            await press(keys.ARROW_UP, app)
-            await press(keys.ARROW_UP, app)
-            const expected = '\x1B[7ma\x1B[27mb';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to start of line", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncd"});
-            var app = render(element);
-            await press(keys.CTRLA, app)
-            await press(keys.ARROW_LEFT, app)
-            await press(keys.CTRLA, app)
-            await press(keys.CTRLA, app)
-            //moves to start of line 2 then start of line 1
-            const expected = '\x1B[7ma\x1B[27mb\ncd';
-            assert.strictEqual(app.frames[1], "ab\n\x1B[7mc\x1B[27md");
-            assert.strictEqual(app.frames[3], expected);
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to start of line even if truncate is set", async function () {
-            var element = e(HandledInputBox, {initialInput: "hello world", width:2, wrap:"truncate"});
-            var app = render(element);
-            await press(keys.CTRLA, app)
-            const expected = '\x1B[7mh\x1B[27m…';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to end of line", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab\ncd"});
-            var app = render(element);
-            await press(keys.CTRLA, app)
-            await press(keys.ARROW_UP, app)
-            await press(keys.CTRLE, app)
-            await press(keys.CTRLE, app)
-            await press(keys.ARROW_RIGHT, app)
-            await press(keys.CTRLE, app)
-            await press(keys.CTRLE, app)
-            const expected = 'ab\ncd\x1B[7m \x1B[27m';
-            assert.strictEqual(app.frames[2], "\x1B[7ma\x1B[27mb\ncd");
-            assert.strictEqual(app.frames[3], "ab\x1B[7m \x1B[27m\n\x1B[7m\x1B[27mcd");
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should move to previous word", async function () {
-            var element = e(HandledInputBox, {initialInput: "hello world"});
-            var app = render(element);
-            await press(keys.ALTB, app);
-            assert.strictEqual(app.lastFrame(), "hello \x1B[7mw\x1B[27morld")
-            app.unmount();
-        });
-        it("should move to next word", async function () {
-            var element = e(HandledInputBox, {initialInput: "hello world"});
-            var app = render(element);
-            await press(keys.ALTB, app);
-            await press(keys.ALTF, app);
-            assert.strictEqual(app.lastFrame(), "hello world\x1B[7m \x1B[27m")
-            app.unmount();
-        });
-        it("should delete characters", async function () {
-            var element = e(HandledInputBox, {initialInput: "ab"});
-            var app = render(element);
-            await press(keys.DELETE, app)
-            await press(keys.DELETE, app)
-            await press(keys.DELETE, app)
-            const expected = '\x1B[7m \x1B[27m';
-            assert.strictEqual(app.frames[1], "a\x1B[7m \x1B[27m")
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should delete word", async function () {
-            var element = e(HandledInputBox, {initialInput: "Hello world"});
-            var app = render(element);
-            await press(keys.CTRLW, app)
-            //a + cursor
-            const expected = 'Hello \x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should delete line", async function () {
-            var element = e(HandledInputBox, {initialInput: "Hello world 2"});
-            var app = render(element);
-            await press(keys.CTRLU, app)
-            //a + cursor
-            const expected = '\x1B[7m \x1B[27m';
-            assert.strictEqual(app.lastFrame(), expected);
-        });
-        it("should go up line when deleting empty line", async function () {
-            var element = e(HandledInputBox, {initialInput: "Hello\n"});
-            var app = render(element);
-            await press(keys.CTRLU, app)
-            //a + cursor
-            const expected = 'Hello\x1B[7m \x1B[27m';
             assert.strictEqual(app.lastFrame(), expected);
         });
         it("should be able to set value", async function () {

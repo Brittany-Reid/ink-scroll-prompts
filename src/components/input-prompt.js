@@ -52,7 +52,6 @@ class InputPrompt extends React.Component{
     constructor(props){
         super(props);
         
-        
         this.inputBoxRef = React.createRef();
         this.scrollBoxRef = React.createRef();
         // this.suggestionBoxRef = React.createRef();
@@ -326,6 +325,7 @@ class InputPrompt extends React.Component{
             transform,
             color,
             historyFile,
+            newlineOnDown,
             ...props
         } = this.props;
 
@@ -363,6 +363,7 @@ class InputPrompt extends React.Component{
             width:"100%",
             onCancel: this.handleCancel,
             onSubmit: onSubmit,
+            newlineOnDown: newlineOnDown,
         }
 
         const footerProps = {
@@ -546,6 +547,9 @@ const HandledInputPrompt = React.forwardRef(({
             setInput: (ch, resetTyped) => {
                 innerRef.current.setInput(ch, resetTyped);
             },
+            append: (s) => {
+                innerRef.current.append(s);
+            },
             historyUp: () => {
                 innerRef.current.historyUp();
             },
@@ -560,12 +564,6 @@ const HandledInputPrompt = React.forwardRef(({
             }
         }
     }, [innerRef])
-
-    // const internalOnSubmit = React.useCallback((input)=>{
-    //     if(typeof onSubmit === "function") onSubmit(input);
-    //     exit();
-    //     stdout.moveCursor(0, -1);
-    // }, [onSubmit])
 
     const InputProps = {
         ref:innerRef,

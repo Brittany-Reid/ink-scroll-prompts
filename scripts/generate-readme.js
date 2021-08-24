@@ -9,6 +9,22 @@ var directory = "doc";
 var output = "README.md";
 var config = path.join(directory, ".generate-readme.json");
 
+function validate(string){
+    //fix details with no \n after
+    var lines = string.split("\n");
+    for(var i=0;i<lines.length; i++){
+        var l = lines[i];
+        if(l.trim() === "</details>"){
+            var nextLine = lines[i+1];
+            if(nextLine.trim().length > 0){
+                lines[i] += "\n";
+            }
+        }
+    }
+
+    return lines.join("\n")
+}
+
 function details(string, summary){
     var detailsOpen = "<details>"
     if(summary) detailsOpen = detailsOpen + "<summary>" + summary + "</summary>";
@@ -90,6 +106,8 @@ function generateReadme(){
         var childContents = handleChild(c);
         contents += "\n" + childContents;
     }
+
+    contents = validate(contents);
 
     fs.writeFileSync(output, contents)
 }

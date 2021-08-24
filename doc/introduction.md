@@ -6,12 +6,12 @@
 </tr>
 </table>
 
-# Ink Scroll Prompts
+# Ink Scroll Prompts 
 
 ![tests](https://github.com/Brittany-Reid/ink-scroll-prompts/actions/workflows/test.yml/badge.svg)
 
 <p align="center">
-<img src="assets/media/scroll.gif"/>
+<img src="/assets/media/scroll.gif"/>
 </p>
 
 Prompts that scroll. Using ink. 🎉

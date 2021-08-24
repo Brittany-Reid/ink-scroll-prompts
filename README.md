@@ -6,12 +6,12 @@
 </tr>
 </table>
 
-# Ink Scroll Prompts
+# Ink Scroll Prompts 
 
 ![tests](https://github.com/Brittany-Reid/ink-scroll-prompts/actions/workflows/test.yml/badge.svg)
 
 <p align="center">
-<img src="assets/media/scroll.gif"/>
+<img src="/assets/media/scroll.gif"/>
 </p>
 
 Prompts that scroll. Using ink. 🎉
@@ -41,41 +41,42 @@ npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#comm
 See the examples in the example folder.
 </details>
 
-## components
+## Components
 <details>
 
 ### `InputPrompt`
 
 An input prompt, which can be used to accept text input, provide completions and suggestions.
 
+```js
+ink.render(e(Inputprompt, properties));
+```
+
 #### Properties
 
-#### initialText
+<details>
 
+#### initialText
 Type : `string`
 
 Set an initial input string.
 
 #### placeholder
-
 Type : `string`
 
 Set a placeholder string that appears when input is empty.
 
 #### completions
-
 Type : `Array<string>`
 
 Array of string completions that display inline at the end of input as you type.
 
 #### complete
-
 Type : `function(input : string, lastWord : string, cursor : number, completions : Array<String>) : string`
 
 Custom complete function. Returns a string match.
 
 #### multiline
-
 Type : `boolean`
 
 Allow user to insert a newline using cursorDown on last line. Default `false`.
@@ -83,14 +84,47 @@ Allow user to insert a newline using cursorDown on last line. Default `false`.
 Initial input and copy-pasted input can still include newlines.
 
 #### disableNewLines
-
 Type : `boolean`
 
 If multiline is `false`, disable newlines in input. This enforces no newlines in initial input and copy pasted input. Default `false`.
 
+#### newlineOnDown
+Type : `boolean`
+
+If multiline is `true`, disable newlines on cursor down. Useful if mapping newline to a specific key, see the [editor prompt](/examples/components/editor-prompt) example.
+
+#### accentColor
+Type : `string`
+
+The accent colour, a string recognized by ink and chalk. Default: `cyan`.
+
+</details>
+
 ### `HandledInputPrompt`
 
-InputPrompt, but handles `ink.useInput` for you automatically.
+An `InputPrompt` that implements `ink.useInput` for you. It accepts all of `InputPrompt`'s properties. 
+
+```js
+ink.render(e(HandledInputprompt, properties));
+```
+
+#### Properties
+
+<details>
+
+#### useDefaultKeys
+Type : `boolean`
+
+If `HandledInputPrompt` should use the default keybindings defined at `InputPrompt.DefaultKeyBindings`. Default: `true`.
+
+#### additionalKeys
+Type : `object`
+
+Supply custom keybindings. If `useDefaultKeys` is false, this will be the only keybindings, if true, it will only be combined with existing keys. To overwrite keybindings, set `useDefaultKeys` false, and supply a modified copy of `InputPrompt.DefaultKeyBindings` here.
+
+
+</details>
+
 </details>
 
 ## Keybindings
@@ -115,6 +149,24 @@ While you can create your own components that handle input, each component alrea
 | <kbd>↓</kbd> | Cursor Line Down | |
 
 <kbd>meta</kbd> is equivalent to Alt on Windows and Option on Mac. You may need to enable the use of Option as Meta on Mac.
+</details>
+
+## Testing
+<details>
+
+
+This project uses mocha and nyc to test. You can run the tests using:
+
+```sh
+npm test
+```
+
+```
+npm run coverage
+```
+
+To test, this project uses a non-exported patch of `ink-testing-library` available [here](/src/patch/ink-testing-library.js) that uses the neccessary fork, however, this will be removed when no longer necessary. The [test-utils](/src/test-utils.js) file also contains functions used to test components. For testing your own code, I recommend copying these files into your project.
+
 </details>
 
 ## License
