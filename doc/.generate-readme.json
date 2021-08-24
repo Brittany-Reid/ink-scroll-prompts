@@ -1,0 +1,35 @@
+[
+    {
+        "name": "introduction.md",
+        "children": [
+            {
+                "name": "install.md",
+                "hideContents": true
+            },
+            {
+                "name": "usage.md",
+                "hideContents": true
+            },
+            {
+                "name": "components",
+                "hideContents": true,
+                "file": false,
+                "children": [
+                    {
+                        "name": "components/input-prompt.md"
+                    },
+                    {
+                        "name": "components/handled-input-prompt.md"
+                    }
+                ]
+            },
+            {
+                "name": "keybindings.md",
+                "hideContents": true
+            },
+            {
+                "name": "license.md"
+            }
+        ]
+    }
+]
