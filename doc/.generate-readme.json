@@ -20,6 +20,9 @@
                     },
                     {
                         "name": "components/handled-input-prompt.md"
+                    },
+                    {
+                        "name": "components/input-box.md"
                     }
                 ]
             },

@@ -3,21 +3,21 @@ const React = require("react");
 const e = React.createElement;
 
 /**
- * @typedef {Object} PromptTypes
+ * @typedef {Object} PromptTextTypes
  * @property {string} [prefix] Prompt prefix. `NAME` in `NAME [opts] >`.
  * @property {string} [message] Prompt message. `[opts]` in `NAME [opts] >`.
  * @property {string} [seperator] Prompt seperator. `>` in `NAME [opts] >`.
  * @property {import("../types").Color} [accentColor] Color of the prefix of the prompt.
  * 
- * @typedef {ink.TextProps & PromptTypes} PromptProps
+ * @typedef {ink.TextProps & PromptTextTypes} PromptTextProps
  */
 
 /**
- * Formatted input prompt, the text before an input field.
+ * Formatted prompt text, the text before the input starts.
  * When dimmed, accent colour will not display.
- * @type {React.FC<PromptProps>}
+ * @type {React.FC<PromptTextProps>}
  */
-const Prompt = ({
+const PromptText = ({
     prefix,
     message,
     seperator = ">",
@@ -47,4 +47,4 @@ const Prompt = ({
     )
 }
 
-module.exports = Prompt;
+module.exports = PromptText;

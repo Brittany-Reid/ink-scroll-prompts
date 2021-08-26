@@ -6,7 +6,7 @@ const e = React.createElement;
 const {render} = require("../src/patch/ink-testing-library-patch");
 const { InputBox, HandledInputBox } = require("../src/components/input-box");
 const delay = require("delay");
-const Prompt = require("../src/components/prompt");
+const PromptText = require("../src/components/prompt-text");
 const chalk = require("chalk");
 const fs = require("fs");
 const { send, write, press, keys } = require("../src/test-utils");
@@ -382,7 +382,7 @@ describe("InputBox", function () {
             assert.strictEqual(app.lastFrame(), expected);
         })
         it("should delete line even with prompt", async function () {
-            var prompt = e(Prompt, {});
+            var prompt = e(PromptText, {});
             var element = e(HandledInputBox, {initialInput: "Hello world 2", promptElement:prompt, promptOffset:2});
             var app = render(element);
             await press(keys.CTRLU, app)

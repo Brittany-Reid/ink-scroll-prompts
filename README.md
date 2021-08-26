@@ -1,7 +1,7 @@
 <table>
 <tr>
 <td>
-⚠️ Ink Scroll Prompts is experimental.
+⚠️ Ink Scroll Prompts is experimental. The API is not stable!
 </td>
 </tr>
 </table>
@@ -15,6 +15,8 @@
 </p>
 
 Prompts that scroll. Using ink. 🎉
+
+`ink-scroll-prompts` enables you to display and interact with strings of large or unknown length. It was build to implement a REPL that could suggest code snippets mined from NPM package documentation. It's an alternative to existing prompt packages, or full screen curses apps which use the alternate screen buffer. `ink-scroll-prompts` preserves the terminal history for more traditional command line interfaces.
 ## Install 
 <details>
 
@@ -125,6 +127,9 @@ Supply custom keybindings. If `useDefaultKeys` is false, this will be the only k
 
 </details>
 
+### `InputBox`
+
+And Input Box is the base component for accepting and navigating text input.
 </details>
 
 ## Keybindings

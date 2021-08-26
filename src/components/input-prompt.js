@@ -4,7 +4,7 @@ const { InputBox } = require("./input-box");
 const { _extends, isKey } = require("../utils");
 const { ScrollBox } = require("./scrollbox");
 const { SuggestionBox } = require("./suggestion-box");
-const Prompt = require("./prompt");
+const PromptText = require("./prompt-text");
 const Footer = require("./footer");
 const AutoComplete = require("./auto-complete");
 const useInput = require("../patch/use-input");
@@ -36,7 +36,7 @@ const e = React.createElement;
  * @property {Array} [suggestions] Suggestions that appear in a box.
  * @property {Object} [keyBindings] Keybindings (used by footer for display).
  * 
- * @typedef {Pick<import("./auto-complete").AutoCompleteTypes, "completions" | "complete"> & Pick<import("./suggestion-box").SuggestionBoxTypes, "suggestions" | "suggest">  & import("./scrollbox").ScrollBoxProps & import("./input-box").InputBoxProps & import("./prompt").PromptTypes & InputPromptTypes} InputPromptProps
+ * @typedef {Pick<import("./auto-complete").AutoCompleteTypes, "completions" | "complete"> & Pick<import("./suggestion-box").SuggestionBoxTypes, "suggestions" | "suggest">  & import("./scrollbox").ScrollBoxProps & import("./input-box").InputBoxProps & import("./prompt-text").PromptTextTypes & InputPromptTypes} InputPromptProps
  */
 
 
@@ -329,7 +329,7 @@ class InputPrompt extends React.Component{
             ...props
         } = this.props;
 
-        const promptProps = {
+        const promptTextProps = {
             prefix:prefix,
             message:message,
             seperator:seperator,
@@ -353,7 +353,7 @@ class InputPrompt extends React.Component{
             historyFile: historyFile,
             ref: this.inputBoxRef,
             promptOffset: calculatePromptOffset(prefix, message, seperator),
-            promptElement: e(Prompt, promptProps),
+            promptElement: e(PromptText, promptTextProps),
             multiline:multiline,
             disableNewlines: disableNewlines,
             wrap:wrap,
@@ -406,7 +406,7 @@ class InputPrompt extends React.Component{
             return e(ink.Static, {items:[1]}, item =>
                 e(ink.Box, {flexDirection:"column", overflow:"hidden", key:1},
                     e(ink.Text, {}, 
-                        e(Prompt, promptProps),
+                        e(PromptText, promptTextProps),
                         e(ink.Text, inputBoxProps, this.inputBoxRef.current.state.input.trimEnd())
                     )
                 )
