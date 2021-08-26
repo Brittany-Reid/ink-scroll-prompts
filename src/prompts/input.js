@@ -1,7 +1,7 @@
 const React = require("react");
 const Fullscreen = require("../components/fullscreen");
 const { HandledInputPrompt } = require("../components/input-prompt");
-const Prompt = require("./Prompt");
+const Prompt = require("./prompt");
 
 const e = React.createElement;
 
