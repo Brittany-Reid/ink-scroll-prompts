@@ -8,7 +8,17 @@
             },
             {
                 "name": "usage.md",
-                "hideContents": true
+                "examples": true
+            },
+            {
+                "name": "Prompts",
+                "hideContents": true,
+                "file": false,
+                "children": [
+                    {
+                        "name": "prompts/input.md"
+                    }
+                ]
             },
             {
                 "name": "Components",

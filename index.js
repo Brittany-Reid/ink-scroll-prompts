@@ -4,6 +4,8 @@ const { HandledInputBox, InputBox } = require("./src/components/input-box");
 const { HandledInputPrompt, InputPrompt } = require("./src/components/input-prompt");
 const useTerminalSize = require("./src/hooks/use-terminal-size");
 const useInput = require("./src/patch/use-input");
+const Prompt = require("./src/prompts/Prompt");
+const Input = require("./src/prompts/input");
 
 /**
  * @typedef {import("./src/components/input-prompt").InputPromptProps} InputPromptProps
@@ -22,4 +24,6 @@ module.exports = {
     HandledInputPrompt,
     useTerminalSize,
     useInput,
+    Prompt,
+    Input
 }

@@ -11,7 +11,7 @@
 ![tests](https://github.com/Brittany-Reid/ink-scroll-prompts/actions/workflows/test.yml/badge.svg)
 
 <p align="center">
-<img src="/assets/media/scroll.gif"/>
+<img src="/assets/media/input.gif"/>
 </p>
 
 Prompts that scroll. Using ink. 🎉
@@ -37,10 +37,56 @@ npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#comm
 </details>
 
 ## Usage
+
+You can run an `Input` prompt using:
+
+```js
+const {Input} = require("ink-scroll-prompts");
+
+var prompt = new Input({
+    prefix: "Write something",
+    seperator: "!",
+    multiline: true,
+});
+
+prompt.run()
+    .then(response =>console.log("You wrote: " + response))
+    .catch(e => {})
+```
+*[Full Example](/examples/prompts/input.js)*
+
+Or, use the components and ink for advanced UIs!
+
+See the [examples](/examples) folder for more usage examples.
+
+
+
+
+
+
+
+
+
+## Prompts
 <details>
 
+### `Input`
 
-See the examples in the example folder.
+An input prompt, extending `Prompt`. It implements a `HandledInputPrompt`.
+
+#### Options
+
+<details>
+
+Accepts all `HandledInputPrompt` properties.
+
+##### heightOffset
+
+Default `0`. Adjust the maxHeight of the component, if you want previous terminal lines to always be visable.
+
+</details>
+
+
 </details>
 
 ## Components
@@ -58,44 +104,44 @@ ink.render(e(Inputprompt, properties));
 
 <details>
 
-#### initialText
+##### initialText
 Type : `string`
 
 Set an initial input string.
 
-#### placeholder
+##### placeholder
 Type : `string`
 
 Set a placeholder string that appears when input is empty.
 
-#### completions
+##### completions
 Type : `Array<string>`
 
 Array of string completions that display inline at the end of input as you type.
 
-#### complete
+##### complete
 Type : `function(input : string, lastWord : string, cursor : number, completions : Array<String>) : string`
 
 Custom complete function. Returns a string match.
 
-#### multiline
+##### multiline
 Type : `boolean`
 
 Allow user to insert a newline using cursorDown on last line. Default `false`.
 
 Initial input and copy-pasted input can still include newlines.
 
-#### disableNewLines
+##### disableNewLines
 Type : `boolean`
 
 If multiline is `false`, disable newlines in input. This enforces no newlines in initial input and copy pasted input. Default `false`.
 
-#### newlineOnDown
+##### newlineOnDown
 Type : `boolean`
 
 If multiline is `true`, disable newlines on cursor down. Useful if mapping newline to a specific key, see the [editor prompt](/examples/components/editor-prompt) example.
 
-#### accentColor
+##### accentColor
 Type : `string`
 
 The accent colour, a string recognized by ink and chalk. Default: `cyan`.
@@ -114,12 +160,12 @@ ink.render(e(HandledInputprompt, properties));
 
 <details>
 
-#### useDefaultKeys
+##### useDefaultKeys
 Type : `boolean`
 
 If `HandledInputPrompt` should use the default keybindings defined at `InputPrompt.DefaultKeyBindings`. Default: `true`.
 
-#### additionalKeys
+##### additionalKeys
 Type : `object`
 
 Supply custom keybindings. If `useDefaultKeys` is false, this will be the only keybindings, if true, it will only be combined with existing keys. To overwrite keybindings, set `useDefaultKeys` false, and supply a modified copy of `InputPrompt.DefaultKeyBindings` here.
@@ -177,3 +223,5 @@ To test, this project uses a non-exported patch of `ink-testing-library` availab
 ## License
 
 Unlicense. Do what you want with it. ❤️
+
+ *This file was automatically generated.*

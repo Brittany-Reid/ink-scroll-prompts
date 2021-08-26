@@ -9,6 +9,59 @@ var directory = "doc";
 var output = "README.md";
 var config = path.join(directory, ".generate-readme.json");
 
+
+/**
+ * Write to a file, append with autogen statement if true.
+ */
+function write(path, string, autogen = false){
+
+
+    //link to something here later, this string should also be removable from children
+    if(autogen){
+        string += "\n\n *This file was automatically generated.*"
+    }
+    fs.writeFileSync(path, string);
+}
+
+/**
+ * Check and add examples directly above a [Full Example] link
+ */
+function examples(string, dir){
+    var lines = string.split("\n");
+    var snippet;
+    for(var i = 0; i<lines.length; i++){
+        var l = lines[i];
+        if(l.includes("[Full Example]")){
+            var end = l.indexOf("[Full Example]") + "[Full Example]".length;
+            var link = l.substring(end)
+            link = link.substring(link.indexOf("(")+1, link.indexOf(")"));
+            if(link.startsWith("/")) link = link.substring(1);
+            
+            var code = fs.readFileSync(link, {encoding: "utf-8"})
+            snippet = "```js\n" + code +"\n```";
+            if(lines[i-1] && lines[i-1].startsWith("```")){
+                lines[i-1] = undefined;
+                for(var j = i-2; i>=0; j--){
+                    var p = lines[j];
+                    lines[j] = undefined;
+                    if(p.startsWith("```")) break;
+                }
+            }
+            lines[i] = snippet + "\n" + lines[i];
+        }
+    }
+
+    var final = "";
+    for(var l of lines){
+        if(typeof l === "string") final += l + "\n";
+    }
+
+    fs.writeFileSync(dir, final);
+
+
+    return final;
+}
+
 function validate(string){
     //fix details with no \n after
     var lines = string.split("\n");
@@ -82,12 +135,17 @@ function handleChild(child){
             childContents += "\n" + subChildContents;
         }
 
+    if(child.examples){
+        childContents = examples(childContents, dir);
+    }
+
     childContents = subHeadings(childContents);
 
     if(child.hideContents){
         var summary = child.summary;
         childContents = details(childContents, summary)
     }
+
     return childContents;
 }
 
@@ -109,7 +167,7 @@ function generateReadme(){
 
     contents = validate(contents);
 
-    fs.writeFileSync(output, contents)
+    write(output, contents, true)
 }
 
 generateReadme();
