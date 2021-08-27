@@ -5,7 +5,8 @@ const ink = require("@gnd/ink");
 const e = React.createElement;
 const delay = require("delay");
 const {render} = require("./../src/patch/ink-testing-library-patch");
-const { ScrollBox } = require("../src/components/scrollbox");
+const { ScrollBox, HandledScrollBox } = require("../src/components/scrollbox");
+const {press, keys} = require("../src/test-utils");
 
 var contents = e(ink.Box, {flexDirection:"column", width:7, height:6}, 
     e(ink.Box, {borderStyle:"single", height:3, width:7}, 
@@ -180,5 +181,20 @@ describe("ScrollBox", function () {
             await delay(100);
             assert.strictEqual(lastFrame(), expected);
         });
+    });
+    describe("input handling", function(){
+        it("should be able to move with arrow keys", async function(){
+            var element = e(HandledScrollBox, {width: 6, height: 2, arrows: false},
+                e(ink.Box, {width: 7}, 
+                    e(ink.Text, {}, "AAABBBC")
+                )
+            )
+            var app = render(element);
+            await delay(100);
+            assert.strictEqual(app.lastFrame(), "AAABBB\n\x1B[47m     \x1B[49m");
+            await press(keys.ARROW_RIGHT, app);
+            await delay(100);
+            assert.strictEqual(app.lastFrame(), "AABBBC\n \x1B[47m     \x1B[49m");
+        })
     });
 });

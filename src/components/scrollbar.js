@@ -56,8 +56,7 @@ const Scrollbar = ({
 
             //calculate offset, using visable track and the scroll position (as percent)
             var visableTrack = Math.max(0, length - newThumbLength);
-            var newThumbOffset = Math.min(Math.round(scrollPercent*visableTrack), visableTrack); 
-
+            var newThumbOffset = Math.min(Math.round(scrollPercent*visableTrack), visableTrack);
             setThumbLength(newThumbLength);
             setThumbOffset(newThumbOffset);
         }, 30);
@@ -91,7 +90,7 @@ const Scrollbar = ({
     const thumbProps = {
         flexGrow:0,
         marginTop: direction === "vertical" ? thumbOffset : undefined,
-        marginleft: direction === "horizontal" ? thumbOffset : undefined,
+        marginLeft: direction === "horizontal" ? thumbOffset : undefined,
     }
     
     //outer box
