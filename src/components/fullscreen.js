@@ -31,7 +31,7 @@ const Fullscreen = React.forwardRef(({
 
     const fullscreenProps = {
         maxHeight: height - (heightOffset+1),
-        maxWidth: "100%",
+        width: "100%",
     }
 
 

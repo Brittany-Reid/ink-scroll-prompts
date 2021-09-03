@@ -8,6 +8,8 @@ const e = React.createElement;
  * @typedef {Object} ItemComponentTypes
  * @property {string} label Label to display, required.
  * @property {boolean} [isSelected]
+ * @property {string} [selectIndicator] Select state indicator character.
+ * @property {string} [nullIndicator] Non-selected state indicator character.
  * @property {import("../types").Color} [accentColor]
  * 
  * @typedef {ink.TextProps & ItemComponentTypes} ItemComponentProps
@@ -21,13 +23,26 @@ const e = React.createElement;
 const ItemComponent = ({
     label,
     accentColor = "cyan",
+    selectIndicator = "◉",
+    nullIndicator = "◯",
     isSelected = false,
     ...props
 }) => {
-    var textProps = {};
-    if(isSelected) textProps.color = accentColor;
+    var textProps = _extends({}, props);
+    if(isSelected){
+        textProps.color = accentColor;
+    }
 
-    return e(ink.Text, textProps, label);
+    const indicatorElement = React.useMemo(()=>{   
+        if(!selectIndicator) return null;
+        if(isSelected) return e(ink.Text, {}, selectIndicator + " ");
+        return e(ink.Text, {},  nullIndicator + " ")
+    }, [isSelected, selectIndicator, nullIndicator])
+
+    return e(ink.Text, textProps, 
+        indicatorElement,
+        e(ink.Text, {underline: isSelected ? true : false}, label)
+    );
 }
 
 /**
@@ -52,12 +67,15 @@ const ItemComponent = ({
  * @property {OnSelectFunction} [onSelect] Function to call on select.
  * @property {OnCancelFunction} [onCancel] Function to call on cancel.
  * @property {boolean} [isFocused] If suggestionBox is focused, otherwise it doesn't use input.
+ * @property {boolean} [indicator] Indicator character.
+ * @property {string} [selectIndicator] Select state indicator character.
+ * @property {string} [nullIndicator] Non-selected state indicator character.
  * 
  * @typedef {import("./scrollbox").ScrollBoxProps & ScrollMenuTypes} ScrollMenuProps
  */
 
 /**
- * Scrollable menu. Currently only works vertically.
+ * Scrollable menu.
  * @type {React.FC<ScrollMenuProps>}
  */
 const ScrollMenu = ({
@@ -66,17 +84,18 @@ const ScrollMenu = ({
     itemComponent = ItemComponent,
     onSelect = undefined,
     onCancel = undefined,
-    overflowX = "hidden",
-    overflowY,
-    flexDirection = "column",
+    flexDirection = "column", //this controls child direction
     arrows = false,
     isFocused = true,
+    selectIndicator,
+    nullIndicator,
     dimColor,
     ...props
 }) => {
     //state
     const [selectedIndex, setSelectedIndex] = React.useState(initialIndex);
     const [scrollY, setScrollY] = React.useState(0);
+    const [scrollX, setScrollX] = React.useState(0);
 
     //references
     const scrollBoxRef = React.useRef();
@@ -91,14 +110,14 @@ const ScrollMenu = ({
 
     //handle input
     ink.useInput((input, key) => {
-        if(key.upArrow){
+        if(key.upArrow || key.leftArrow){
             let nextSelected = selectedIndex-1;
             if(nextSelected < 0) nextSelected = items.length-1;
             //else if(nextSelected >= items.length) nextSelected = 0;
             setSelectedIndex(nextSelected);
             return;
         }
-        if(key.downArrow){
+        if(key.downArrow || key.rightArrow){
             let nextSelected = selectedIndex+1;
             if(nextSelected >= items.length) nextSelected = 0;
             setSelectedIndex(nextSelected);
@@ -130,23 +149,36 @@ const ScrollMenu = ({
         //measure
         var container = ink.measureElement(containerRef.current);
         var selected = selectedNode.yogaNode.getComputedLayout();
-        
-        var newScrollY = scrollY;
-        if(selected.height > container.height) newScrollY = selected.top;
-        else if(selected.top < scrollY) newScrollY = selected.top;
-        else{
-            var difference = (selected.top+selected.height) - (scrollY+container.height);
-            newScrollY += Math.max(difference, 0);
+
+        if(flexDirection === "column"){
+            var newScrollY = scrollY;
+            if(selected.height > container.height) newScrollY = selected.top;
+            else if(selected.top < scrollY) newScrollY = selected.top;
+            else{
+                var difference = (selected.top+selected.height) - (scrollY+container.height);
+                newScrollY += Math.max(difference, 0);
+            }
+    
+            newScrollY = currentScrollBoxRef.setScrollY(newScrollY);
+            setScrollY(newScrollY);
         }
- 
-        newScrollY = currentScrollBoxRef.setScrollY(newScrollY);
-        setScrollY(newScrollY);
+        else{
+            var newScrollX = scrollX;
+            if(selected.width > container.width) newScrollX = selected.left;
+            else if(selected.left < scrollX) newScrollX = selected.left;
+            else{
+                var difference = (selected.left+selected.width) - (scrollX+container.width);
+                newScrollX += Math.max(difference, 0);
+            }
+            newScrollX = currentScrollBoxRef.setScrollX(newScrollX);
+            setScrollX(newScrollX);
+        }
 
     }, [selectedIndex]);
 
     const scrollBoxProps = {
-        overflowX: overflowX,
-        overflowY: overflowY,
+        overflowX: (flexDirection === "column") ? "hidden" : "auto",
+        overflowY: (flexDirection === "column") ? "auto" : "hidden",
         flexDirection:flexDirection,
         ref: scrollBoxRef,
         containerRef:containerRef,
@@ -157,8 +189,8 @@ const ScrollMenu = ({
         items.map((item, index) => {
             var isSelected;
             if(index === selectedIndex) isSelected = true;
-            return e(ink.Box, {key:index}, 
-                e(itemComponent, _extends(item, {isSelected:isSelected, dimColor: dimColor}))
+            return e(ink.Box, {key:index, marginRight: (flexDirection === "row" ? 1 : undefined)}, 
+                e(itemComponent, _extends(item, {isSelected:isSelected, dimColor: dimColor, selectIndicator, nullIndicator}))
             )
         })
     )

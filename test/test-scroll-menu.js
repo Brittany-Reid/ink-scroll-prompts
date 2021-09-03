@@ -32,7 +32,7 @@ describe("ScrollMenu", function () {
             ]
             var element = e(ScrollMenu, {items:items});
             var {lastFrame, unmount} = render(element);
-            assert.strictEqual(lastFrame(), "\x1B[36ma\x1B[39m\nb")
+            assert.strictEqual(lastFrame(), "\x1B[36m◉ \x1B[4ma\x1B[24m\x1B[39m\n◯ b")
             await delay(100);
             unmount();
         });
@@ -79,7 +79,7 @@ describe("ScrollMenu", function () {
             var {unmount, stdin, lastFrame} = render(element);
             stdin.write(ARROW_DOWN);
             await delay(100);
-            assert.strictEqual(lastFrame(), "a\n\x1B[36mb\x1B[39m")
+            assert.strictEqual(lastFrame(), "◯ a\n\x1B[36m◉ \x1B[4mb\x1B[24m\x1B[39m")
             await delay(100);
             unmount();
         });
@@ -94,7 +94,7 @@ describe("ScrollMenu", function () {
             await delay(100);
             stdin.write(ARROW_UP);
             await delay(100);
-            assert.strictEqual(lastFrame(), "\x1B[36ma\x1B[39m\nb")
+            assert.strictEqual(lastFrame(), "\x1B[36m◉ \x1B[4ma\x1B[24m\x1B[39m\n◯ b")
             await delay(100);
             unmount();
         });
@@ -109,7 +109,7 @@ describe("ScrollMenu", function () {
             await delay(100);
             stdin.write(ARROW_DOWN);
             await delay(100);
-            assert.strictEqual(lastFrame(), "\x1B[36ma\x1B[39m\nb")
+            assert.strictEqual(lastFrame(), "\x1B[36m◉ \x1B[4ma\x1B[24m\x1B[39m\n◯ b")
             await delay(100);
             unmount();
         });
@@ -122,7 +122,7 @@ describe("ScrollMenu", function () {
             var {unmount, stdin, lastFrame} = render(element);
             stdin.write(ARROW_UP);
             await delay(100);
-            assert.strictEqual(lastFrame(), "a\n\x1B[36mb\x1B[39m")
+            assert.strictEqual(lastFrame(), "◯ a\n\x1B[36m◉ \x1B[4mb\x1B[24m\x1B[39m")
             await delay(100);
             unmount();
         });
@@ -136,7 +136,7 @@ describe("ScrollMenu", function () {
             var {unmount, stdin, lastFrame} = render(element);
             stdin.write(ARROW_UP);
             await delay(100);
-            const expected = "b\n\x1B[36mc\x1B[39m  \x1B[47m \x1B[49m"
+            const expected = "◯ b\n\x1B[36m◉ \x1B[4mc\x1B[39m\x1B[24m\x1B[47m \x1B[49m"
             assert.strictEqual(lastFrame(), expected)
             await delay(100);
             unmount();
