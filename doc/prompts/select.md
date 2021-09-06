@@ -40,3 +40,4 @@ Default `1`. Adjust the maxHeight of the component, if you want previous termina
 </details>
 
 
+

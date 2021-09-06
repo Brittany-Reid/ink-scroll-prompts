@@ -1,15 +1,7 @@
 # Install 
 
-The package is currently not published on NPM.
-
-You can install it from GitHub using:
+You can install `ink-scroll-prompts` using npm:
 
 ```sh
-npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git"
-```
-
-I recommend using a specific commit using:
-
-```
-npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#commit"
+npm install ink-scroll-prompts
 ```

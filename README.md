@@ -18,24 +18,12 @@ Prompts that scroll. Using ink. 🎉
 
 `ink-scroll-prompts` enables you to display and interact with strings of large or unknown length. It was build to implement a REPL that could suggest code snippets mined from NPM package documentation. It's an alternative to existing prompt packages, or full screen curses apps which use the alternate screen buffer. `ink-scroll-prompts` preserves the terminal history for more traditional command line interfaces.
 ## Install 
-<details>
 
-
-The package is currently not published on NPM.
-
-You can install it from GitHub using:
+You can install `ink-scroll-prompts` using npm:
 
 ```sh
-npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git"
+npm install ink-scroll-prompts
 ```
-
-I recommend using a specific commit using:
-
-```
-npm install --save "https://github.com/Brittany-Reid/ink-scroll-prompts.git#commit"
-```
-</details>
-
 ## Usage
 
 You can run an `Input` prompt using:
@@ -58,6 +46,7 @@ prompt.run()
 Or, use the components and ink for advanced UIs!
 
 See the [examples](/examples) folder for more usage examples.
+
 
 
 
@@ -129,6 +118,7 @@ Type : `number`
 Default `1`. Adjust the maxHeight of the component, if you want previous terminal lines to always be visable.
 
 </details>
+
 
 
 

@@ -3,8 +3,7 @@
         "name": "introduction.md",
         "children": [
             {
-                "name": "install.md",
-                "hideContents": true
+                "name": "install.md"
             },
             {
                 "name": "usage.md",
