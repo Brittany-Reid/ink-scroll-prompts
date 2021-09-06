@@ -6,6 +6,7 @@ const useTerminalSize = require("./src/hooks/use-terminal-size");
 const useInput = require("./src/patch/use-input");
 const Prompt = require("./src/prompts/prompt");
 const Input = require("./src/prompts/input");
+const Select = require("./src/prompts/select");
 
 /**
  * @typedef {import("./src/components/input-prompt").InputPromptProps} InputPromptProps
@@ -25,5 +26,6 @@ module.exports = {
     useTerminalSize,
     useInput,
     Prompt,
-    Input
+    Input,
+    Select
 }

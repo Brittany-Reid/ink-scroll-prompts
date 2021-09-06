@@ -38,13 +38,13 @@ const SelectComponent = React.forwardRef(({
 
     const internalOnCancel = React.useCallback((selectedItem)=>{
         setCanceled(true);
-        if(typeof onCancel === "function") onCancel(selectedItem);
+        if(typeof onCancel === "function") onCancel(selectedItem.label);
     }, [onCancel])
 
     const internalOnSubmit = React.useCallback((selectedItem)=>{
         setSelectedItem(selectedItem);
         setSubmitted(true);
-        if(typeof onSubmit === "function") onSubmit(selectedItem);
+        if(typeof onSubmit === "function") onSubmit(selectedItem.label);
     }, [onCancel])
 
     const formattedItems = useMemo(()=>{

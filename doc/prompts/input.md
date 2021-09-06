@@ -10,7 +10,7 @@ Accepts all `HandledInputPrompt` properties.
 
 ### heightOffset
 
-Default `0`. Adjust the maxHeight of the component, if you want previous terminal lines to always be visable.
+Default `1`. Adjust the maxHeight of the component, if you want previous terminal lines to always be visable.
 
 </details>
 

@@ -17,6 +17,10 @@
                 "children": [
                     {
                         "name": "prompts/input.md"
+                    },
+                    {
+                        "name": "prompts/select.md",
+                        "examples": true
                     }
                 ]
             },
