@@ -1,8 +1,11 @@
 {
   "name": "ink-scroll-prompts",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Prompts that scroll. Using ink.",
   "main": "index.js",
+  "files":[
+    "src"
+  ],
   "scripts": {
     "test": "mocha test",
     "coverage": "nyc npm run test",
