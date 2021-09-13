@@ -46,18 +46,6 @@ prompt.run()
 Or, use the components and ink for advanced UIs!
 
 See the [examples](/examples) folder for more usage examples.
-
-
-
-
-
-
-
-
-
-
-
-
 ## Prompts
 <details>
 
@@ -119,9 +107,6 @@ Default `1`. Adjust the maxHeight of the component, if you want previous termina
 
 </details>
 
-
-
-
 </details>
 
 ## Components
@@ -180,6 +165,21 @@ If multiline is `true`, disable newlines on cursor down. Useful if mapping newli
 Type : `string`
 
 The accent colour, a string recognized by ink and chalk. Default: `cyan`.
+
+##### footer
+Type : `boolean`
+
+To display a footer. Default: `false`.
+
+##### footerMessage
+Type : `string` | `React.element`
+
+Message to display in footer, or, if you supply a custom element, this overwrites the default footer.
+
+##### header
+Type : `string` | `React.element`
+
+Single line of text to display above input, or, a custom element.
 
 </details>
 

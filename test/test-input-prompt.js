@@ -1,14 +1,15 @@
 require("mocha");
 var assert = require("assert");
 const React = require("react");
-//const ink = require("@gnd/ink");
+const ink = require("@gnd/ink");
 const { InputPrompt, HandledInputPrompt } = require("../src/components/input-prompt");
 const e = React.createElement;
 const delay = require("delay");
 const {render} = require("../src/patch/ink-testing-library-patch");
 const chalk = require("chalk");
 const fs = require("fs");
-const {press, keys} = require("../src/test-utils")
+const {press, keys} = require("../src/test-utils");
+const ColorBox = require("../src/components/color-box");
 
 const ENTER = '\r';
 const ARROW_UP = '\u001B[A';
@@ -90,6 +91,43 @@ describe("InputPrompt", function () {
             await delay(100);
             const expected = '> \x1B[31mhello\x1B[39m\x1B[7m \x1B[27m';
             assert.strictEqual(lastFrame(), expected);
+        });
+        describe("header", function () {
+            it("should be able to have a header that truncates", async function () {
+                var element = e(InputPrompt, {header:"hello i am a header", width: 5});
+                const {lastFrame} = render(element);
+                const expected = 'hell…\n> \x1B[7m \x1B[27m';
+                await delay(100);
+                assert.strictEqual(lastFrame(), expected);
+            });
+            it("should be able to have colorbox header", async function () {
+                var header = e(ColorBox, {backgroundColor:"cyan"}, e(ink.Text, {backgroundColor:"cyan"}, "hi"));
+                var element = e(InputPrompt, {header:header, width: 5});
+                const {lastFrame} = render(element);
+                const expected = '\x1B[46mhi\x1B[49m\x1B[46m   \x1B[49m\n> \x1B[7m \x1B[27m';
+                await delay(100);
+                assert.strictEqual(lastFrame(), expected);
+            });
+            it("should adjust inputbox height appropriately", async function () {
+                var element = e(InputPrompt, {header:"hi", width: 5, maxHeight: 3, initialInput: "hello\nworld\ngoodbye"});
+                const {lastFrame} = render(element);
+                await delay(100);
+                var lines = lastFrame().split("\n");
+                assert.strictEqual(lines.length, 3);
+                assert.strictEqual(lines[0], "hi");
+                assert.strictEqual(lines[1], "good\x1B[37m▲\x1B[39m");
+                assert.strictEqual(lines[2], "bye\x1B[7m \x1B[27m\x1B[37m▼\x1B[39m");
+            });
+            it("should also work with footer", async function () {
+                var element = e(InputPrompt, {header:"hi", width: 5, maxHeight: 3, footer:true, initialInput: "hello\nworld\ngoodbye"});
+                const {lastFrame} = render(element);
+                await delay(100);
+                var lines = lastFrame().split("\n");
+                assert.strictEqual(lines.length, 3);
+                assert.strictEqual(lines[0], "hi");
+                assert.strictEqual(lines[1], "bye\x1B[7m \x1B[27m\x1B[37m▲\x1B[39m");
+                assert.strictEqual(lines[2], "\x1B[46m     \x1B[49m");
+            });
         });
     });
     describe("input handling", function () {

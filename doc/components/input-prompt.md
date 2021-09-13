@@ -52,4 +52,19 @@ Type : `string`
 
 The accent colour, a string recognized by ink and chalk. Default: `cyan`.
 
+### footer
+Type : `boolean`
+
+To display a footer. Default: `false`.
+
+### footerMessage
+Type : `string` | `React.element`
+
+Message to display in footer, or, if you supply a custom element, this overwrites the default footer.
+
+### header
+Type : `string` | `React.element`
+
+Single line of text to display above input, or, a custom element.
+
 </details>

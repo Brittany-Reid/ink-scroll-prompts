@@ -38,6 +38,3 @@ Type : `number`
 Default `1`. Adjust the maxHeight of the component, if you want previous terminal lines to always be visable.
 
 </details>
-
-
-

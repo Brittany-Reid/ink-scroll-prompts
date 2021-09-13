@@ -35,6 +35,7 @@ const e = React.createElement;
  * @property {OnCancelFunction} [onCancel] Function to call on submit.
  * @property {Array} [suggestions] Suggestions that appear in a box.
  * @property {Object} [keyBindings] Keybindings (used by footer for display).
+ * @property {Object} [header] Header message string or custom element.
  * 
  * @typedef {Pick<import("./auto-complete").AutoCompleteTypes, "completions" | "complete"> & Pick<import("./suggestion-box").SuggestionBoxTypes, "suggestions" | "suggest">  & import("./scrollbox").ScrollBoxProps & import("./input-box").InputBoxProps & import("./prompt-text").PromptTextTypes & InputPromptTypes} InputPromptProps
  */
@@ -109,20 +110,28 @@ class InputPrompt extends React.Component{
 
     updateSize(prevState){
         const {suggesting, scrollBoxMinHeight} = this.state;
+        //if suggesting state changed
         if(suggesting !== prevState.suggesting){
             var newScrollBoxMinHeight = this.inputMinHeight;
+            //if suggesting
             if(suggesting){
+                //get the height needed to display the box, position + 4
                 var heightToDisplay = this.suggestionBoxY+4;
+                //if more than the current maxheight, try to shrink suggestionbox
                 if(heightToDisplay > this.inputMaxHeight){
+                    //what is the overflow?
                     var diff = heightToDisplay - this.inputMaxHeight;
                     if(diff > 1 && this.props.footer) diff -= 1;
                     this.setState({suggestionBoxMaxHeight: Math.max(1, 4-diff)})
                 }
+                //if not, set suggestionboxheight
                 else{
                     this.setState({suggestionBoxMaxHeight: 4})
                 }
+                //set new height to smallest
                 newScrollBoxMinHeight = Math.min(this.inputMaxHeight, heightToDisplay);
             }
+            //if minheight changed, update state
             if(newScrollBoxMinHeight !== scrollBoxMinHeight){
                 this.setState({
                     scrollBoxMinHeight: newScrollBoxMinHeight,
@@ -131,18 +140,42 @@ class InputPrompt extends React.Component{
         }
     }
 
+    /**
+     * Calculate minimum required height.
+     */
     get minHeight(){
-        return (
-            this.props.minHeight ? this.props.minHeight : (this.props.footer ? 2 : 1)
-        );
+        var minHeight = this.props.minHeight;
+        //if minheight not given
+        if(typeof minHeight === "undefined"){
+            var {footer, header} = this.props;
+            minHeight = 1; //default 1
+            if(footer) minHeight+=1; //+1 for footer
+            if(header) minHeight+=1; //+1 for header
+        } 
+        return minHeight;
     }
 
+    /**
+     * Calculate minimum height of the inputBox
+     */
     get inputMinHeight(){
-        return this.props.footer ? this.minHeight-1 : this.minHeight;
+        var {footer, header} = this.props;
+
+        var inputMinHeight = this.minHeight;
+        if(footer) inputMinHeight-=1;
+        if(header) inputMinHeight-=1;
+        return inputMinHeight;
     }
 
+    /**
+     * Calculate maximum height of the inputBox
+     */
     get inputMaxHeight(){
-        return this.props.footer ? this.props.maxHeight-1 : this.props.maxHeight;
+        var {footer, header, maxHeight} = this.props;
+        var inputMaxHeight = maxHeight;
+        if(footer) inputMaxHeight-=1;
+        if(header) inputMaxHeight-=1;
+        return inputMaxHeight;
     }
 
     get suggestionBoxY(){
@@ -326,6 +359,7 @@ class InputPrompt extends React.Component{
             color,
             historyFile,
             newlineOnDown,
+            header,
             ...props
         } = this.props;
 
@@ -374,6 +408,13 @@ class InputPrompt extends React.Component{
             suggestionsEnabled: (suggestions && suggestions.length > 0) ? true : false,
         }
 
+        const headerProps = {
+            width: "100%",
+            height:1,
+            overflow:"hidden",
+            flexDirection: "column"
+        }
+
         const suggestionBoxProps = {
             display: suggesting ? "flex" : "none",
             isFocused: suggesting,
@@ -414,8 +455,20 @@ class InputPrompt extends React.Component{
         }
 
         var footerElement = null;
+        var headerElement = null;
         if(footer) footerElement = e(Footer, footerProps);
+        if(header){
+            if(typeof header === "string"){
+                headerElement = e(ink.Box, headerProps,
+                    e(ink.Text, {wrap: "truncate"}, header)
+                );
+            }
+            else{
+                headerElement = e(ink.Box, headerProps, header);
+            }
+        }
         return e(ink.Box, _extends({flexDirection:"column", overflow:"hidden"}, props),
+            headerElement,
             e(ScrollBox, scrollBoxProps,
                 e(InputBox, inputBoxProps)
             ),

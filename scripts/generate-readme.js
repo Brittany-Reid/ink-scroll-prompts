@@ -56,6 +56,8 @@ function examples(string, dir){
         if(typeof l === "string") final += l + "\n";
     }
 
+    final = final.trim();
+
     fs.writeFileSync(dir, final);
 
 

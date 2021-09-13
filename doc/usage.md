@@ -20,14 +20,3 @@ prompt.run()
 Or, use the components and ink for advanced UIs!
 
 See the [examples](/examples) folder for more usage examples.
-
-
-
-
-
-
-
-
-
-
-
