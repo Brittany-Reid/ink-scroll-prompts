@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Prompts that scroll. Using ink.",
   "main": "index.js",
-  "files":[
+  "files": [
     "src"
   ],
   "scripts": {
@@ -23,6 +23,7 @@
   "license": "Unlicense",
   "dependencies": {
     "data-store": "^4.0.3",
+    "lodash": "^4.17.21",
     "slice-ansi": "^3.0.0",
     "strip-ansi": "^5.2.0",
     "wrap-ansi": "^6.2.0"

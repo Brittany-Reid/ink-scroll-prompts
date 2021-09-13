@@ -42,6 +42,29 @@ describe("InputPrompt", function () {
     })
 
     describe("unit tests", function () {
+        describe("custom keybindings", function () {
+            it("should not overwrite default keybindings", async function(){
+                var element = e(HandledInputPrompt, {initialInput: "a", additionalKeys: {
+                    cancel: {
+                        key: {
+                            f12: true,
+                        }
+                    },
+                    submit: {
+                        key: {
+                            f5:true,
+                        }
+                    }
+                }});
+                const app = render(element);
+                await delay(100);
+                app.unmount();
+                for(var kb of InputPrompt.defaultKeyBindings.cancel){
+                    if(kb.key.f12 === true) assert.fail("has f12");
+                }
+                assert(true);
+            })
+        });
         it("should work with default options", function () {
             var element = e(InputPrompt, {});
             const {lastFrame} = render(element);
@@ -131,6 +154,28 @@ describe("InputPrompt", function () {
         });
     });
     describe("input handling", function () {
+        describe("custom keybindings", function () {
+            it("should handle additinal keys for existing command", async function () {
+                var element = e(HandledInputPrompt, {initialInput: "a", additionalKeys: {
+                    cancel: {
+                        key: {
+                            f12: true,
+                        }
+                    },
+                    submit: {
+                        key: {
+                            f5:true,
+                        }
+                    }
+                }});
+                const app = render(element);
+                await press(keys.F12, app)
+                const expected = '\x1B[2m> \x1B[22m\x1B[2ma\x1B[22m\n';
+                assert.strictEqual(app.lastFrame(), expected);
+    
+                app.unmount();
+            });
+        });
         it("should be able to show completion", async function () {
             var element = e(HandledInputPrompt, {initialInput: "", completions: ["hello"]});
             const {lastFrame, stdin, unmount} = render(element);
@@ -364,28 +409,6 @@ describe("InputPrompt", function () {
             stdin.write(CTRLE)
             await delay(100);
             const expected = '> ab\ncd\x1B[7m \x1B[27m';
-            assert.strictEqual(lastFrame(), expected);
-
-            unmount();
-        });
-        it("should handle additinal keys for existing command", async function () {
-            var element = e(HandledInputPrompt, {initialInput: "a", additionalKeys: {
-                cancel: {
-                    key: {
-                        f12: true,
-                    }
-                },
-                submit: {
-                    key: {
-                        f5:true,
-                    }
-                }
-            }});
-            const {lastFrame, stdin, unmount} = render(element);
-            await delay(100);
-            stdin.write(F12)
-            await delay(100);
-            const expected = '\x1B[2m> \x1B[22m\x1B[2ma\x1B[22m\n';
             assert.strictEqual(lastFrame(), expected);
 
             unmount();

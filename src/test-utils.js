@@ -16,6 +16,7 @@ const keys = {
     DELETE: '\u007F',
     ALTB: "\u001Bb",
     ALTF: "\u001Bf",
+    F12: "\u001B[24~"
 }
 
 async function press(key, app){

@@ -9,6 +9,7 @@ const Footer = require("./footer");
 const AutoComplete = require("./auto-complete");
 const useInput = require("../patch/use-input");
 const { inputPromptKeyBindings } = require("../keybindings");
+const cloneDeep = require("lodash.clonedeep");
 
 const e = React.createElement;
 
@@ -532,7 +533,7 @@ const HandledInputPrompt = React.forwardRef(({
     //get keys
     const keys = React.useMemo(()=>{
         var keys = {};
-        if(useDefaultKeys) keys = _extends({}, InputPrompt.defaultKeyBindings);
+        if(useDefaultKeys) keys = cloneDeep(InputPrompt.defaultKeyBindings);
         if(additionalKeys){
             var ks = Object.keys(additionalKeys);
             for(var k of ks){
